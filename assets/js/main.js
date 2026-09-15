@@ -63,8 +63,12 @@ let myUserRef = null;
 let carouselIndex = 0;
 let carouselTimer = null;
 
-// CORREO MODERADOR PERMITIDO
-const MODERATOR_EMAIL = "esva@losbasados.com";
+// LISTA DE CORREOS MODERADORES PERMITIDOS
+const MODERATOR_EMAILS = [
+    "esva@losbasados.com",
+    "mod2@losbasados.com",
+    "otromod@gmail.com"
+];
 
 // ELEMENTOS DOM
 const gamesGrid = document.getElementById('gamesGrid');
@@ -302,7 +306,7 @@ function setupCategoryEvents() {
 // RENDEREAR NOTICIAS
 function renderNews() {
     const newsContainer = document.getElementById('newsContainer');
-    const isMod = currentUser && (currentUser.isMod || currentUser.email === MODERATOR_EMAIL);
+    const isMod = currentUser && (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email));
 
     newsContainer.innerHTML = loadedNews.map(n => `
         <article class="news-card">
@@ -323,7 +327,7 @@ function renderGames(data) {
         return;
     }
 
-    const isMod = currentUser && (currentUser.isMod || currentUser.email === MODERATOR_EMAIL);
+    const isMod = currentUser && (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email));
 
     data.forEach(game => {
         const isFav = favorites.includes(game.id);
@@ -734,7 +738,7 @@ function setupEventListeners() {
             email: email,
             pass: pass,
             avatar: avatar,
-            isMod: email === MODERATOR_EMAIL
+            isMod: MODERATOR_EMAILS.includes(email)
         };
 
         newUserRef.set(userData, (error) => {
@@ -785,7 +789,7 @@ function updateUserUI() {
         userAvatarNav.src = currentUser.avatar;
         userAvatarNav.classList.remove('hidden');
 
-        if (currentUser.isMod || currentUser.email === MODERATOR_EMAIL) {
+        if (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email)) {
             btnAdminPanel.classList.remove('hidden');
         } else {
             btnAdminPanel.classList.add('hidden');
