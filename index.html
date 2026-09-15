@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOS BASADOS | Comunidad & Juegos PC</title>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- CSS Propio -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <nav class="navbar">
+        <a href="#" class="logo">LOS <span>BASADOS</span></a>
+        
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar juego, port, iso...">
+        </div>
+
+        <div class="nav-actions">
+            <!-- BOTÓN USUARIOS EN LÍNEA / FORO -->
+            <button class="icon-btn online-btn" id="btnOnlineUsers" title="Comunidad & Usuarios en Línea">
+                <i class="fas fa-users"></i>
+                <span class="online-badge" id="onlineCount">0</span>
+            </button>
+            
+            <!-- NOTIFICACIONES -->
+            <button class="icon-btn" id="btnNotif" title="Suscribir Notificaciones">
+                <i class="fas fa-bell"></i>
+            </button>
+            
+            <!-- PERFIL / INGRESO -->
+            <button class="auth-btn" id="btnAuth">
+                <img id="userAvatarNav" src="https://api.dicebear.com/7.x/bottts/svg?seed=Esva" alt="Avatar" class="nav-avatar hidden">
+                <span id="userBtnText">Ingresar</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="main-layout">
+        <main class="content">
+            <!-- HERO SLIDER / BANNER NOVEDAD -->
+            <section class="hero-banner">
+                <div class="hero-content">
+                    <span class="badge">DESTACADO DE LA SEMANA</span>
+                    <h2>MARIO KART WII (PC PORT)</h2>
+                    <p>Corre las mejores pistas del clásico de Wii directo en tu PC con gráficos mejorados y soporte de mando.</p>
+                    <div class="hero-btns">
+                        <button class="btn-primary" onclick="openGameModal(1)">
+                            <i class="fas fa-download"></i> DESCARGAR AHORA
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CATEGORÍAS -->
+            <div class="categories-bar">
+                <button class="cat-btn active" data-cat="all">Todos</button>
+                <button class="cat-btn" data-cat="Carreras">Carreras</button>
+                <button class="cat-btn" data-cat="Acción">Acción</button>
+                <button class="cat-btn" data-cat="Supervivencia">Supervivencia</button>
+                <button class="cat-btn" data-cat="Retro">Retro / Clásicos</button>
+                <button class="cat-btn" data-cat="favs"><i class="fas fa-heart"></i> Favoritos</button>
+            </div>
+
+            <!-- GRID DE JUEGOS -->
+            <section class="games-section">
+                <h3 class="section-title">Catálogo Completo</h3>
+                <div class="games-grid" id="gamesGrid">
+                    <!-- Los juegos se cargan dinámicamente desde main.js -->
+                </div>
+            </section>
+        </main>
+
+        <!-- SIDEBAR DE NOTICIAS -->
+        <aside class="news-sidebar">
+            <h3 class="news-title"><i class="fas fa-newspaper"></i> Noticias Gaming</h3>
+            
+            <article class="news-card">
+                <span class="news-date">15 SEPT, 2026</span>
+                <h4>Nuevos Ports Optimizados para PC</h4>
+                <p>Optimizando los instaladores para que corran en computadoras de gama baja y media sin tirones.</p>
+            </article>
+
+            <article class="news-card">
+                <span class="news-date">12 SEPT, 2026</span>
+                <h4>Actualización de Servidores</h4>
+                <p>Todos los enlaces directos están migrando a servidores de alta velocidad (MediaFire / Directo).</p>
+            </article>
+
+            <article class="news-card">
+                <span class="news-date">10 SEPT, 2026</span>
+                <h4>Comunidad LOS BASADOS</h4>
+                <p>Usa nuestro nuevo Foro en Línea o únete al Discord oficial para pedir tus juegos favoritos.</p>
+            </article>
+        </aside>
+    </div>
+
+    <!-- MODAL DE DESCARGA DE JUEGO -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-box game-modal-box">
+            <button class="modal-close" id="closeGameModal">&times;</button>
+            <div class="modal-game-content" id="gameModalContent">
+                <!-- Se llena con JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE LOGIN / REGISTRO -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <button class="modal-close" id="closeAuthModal">&times;</button>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin">Iniciar Sesión</button>
+                <button class="auth-tab" id="tabRegister">Registrarse</button>
+            </div>
+
+            <!-- Form Login -->
+            <form id="formLogin" class="auth-form active">
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="tu@correo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">ENTRAR</button>
+            </form>
+
+            <!-- Form Registro -->
+            <form id="formRegister" class="auth-form">
+                <div class="form-group">
+                    <label>Nombre de Usuario (Apodo)</label>
+                    <input type="text" id="regUser" placeholder="Tu Nick / ESVA" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="regEmail" placeholder="tu@correo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="regPass" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">CREAR CUENTA</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PERFIL DE USUARIO (CONFIGURACIÓN) -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-box">
+            <button class="modal-close" id="closeProfileModal">&times;</button>
+            <h3><i class="fas fa-user-cog"></i> Configuración de Perfil</h3>
+            
+            <div class="profile-preview-box">
+                <img id="profileAvatarPreview" src="" alt="Avatar">
+            </div>
+
+            <form id="formProfile">
+                <div class="form-group">
+                    <label>Cambiar Apodo / Nickname</label>
+                    <input type="text" id="profileNickname" placeholder="Tu nuevo apodo" required>
+                </div>
+                <div class="form-group">
+                    <label>URL de Imagen de Perfil (o selecciona un estilo)</label>
+                    <input type="url" id="profileAvatarUrl" placeholder="https://imagen.com/foto.png">
+                </div>
+                <div class="avatar-presets">
+                    <label>Elegir Avatar Gamer rápido:</label>
+                    <div class="preset-grid">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Cyber" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Gamer" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Basado" onclick="selectPresetAvatar(this.src)">
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Esva" onclick="selectPresetAvatar(this.src)">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary full-width" style="margin-top: 15px;">GUARDAR CAMBIOS</button>
+                <button type="button" class="btn-secondary full-width" id="btnLogout" style="margin-top: 10px; background:#222; color:#ff4444; border:1px solid #444;">CERRAR SESIÓN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE USUARIOS EN LÍNEA & FORO COMUNITARIO -->
+    <div class="modal-overlay" id="onlineModal">
+        <div class="modal-box forum-modal-box">
+            <button class="modal-close" id="closeOnlineModal">&times;</button>
+            
+            <div class="forum-header">
+                <h3><i class="fas fa-comments"></i> Comunidad & Foro <span>LOS BASADOS</span></h3>
+                <span class="online-indicator"><i class="fas fa-circle"></i> <span id="onlineCountModal">0</span> Basados Conectados</span>
+            </div>
+
+            <div class="forum-layout">
+                <!-- Lista de Usuarios Conectados -->
+                <div class="online-users-sidebar">
+                    <h4>Conectados</h4>
+                    <ul class="users-list" id="onlineUsersList">
+                        <!-- Carga dinámica -->
+                    </ul>
+                </div>
+
+                <!-- Chat / Foro General -->
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Mensajes cargados dinámicamente -->
+                    </div>
+
+                    <form id="formChat" class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Escribe un mensaje para la comunidad..." required>
+                        <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE NOTIFICACIONES -->
+    <div class="modal-overlay" id="notifModal">
+        <div class="modal-box">
+            <button class="modal-close" id="closeNotifModal">&times;</button>
+            <h3><i class="fas fa-bell"></i> Suscribirse a Alertas</h3>
+            <p style="color: #aaa; margin: 10px 0 20px 0; font-size: 0.9rem;">
+                Recibe un aviso al correo cuando subamos un juego nuevo o una actualización de Port.
+            </p>
+            <form id="formNotif">
+                <div class="form-group">
+                    <label>Tu Correo Electrónico</label>
+                    <input type="email" id="notifEmail" placeholder="tu@correo.com" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">ACTIVAR NOTIFICACIONES</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SDKs de Firebase (Compatibilidad CDN Directa) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <!-- Tu JavaScript principal -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
