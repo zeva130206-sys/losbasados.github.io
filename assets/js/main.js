@@ -66,8 +66,8 @@ let carouselTimer = null;
 // LISTA DE CORREOS MODERADORES PERMITIDOS
 const MODERATOR_EMAILS = [
     "esva@losbasados.com",
-    "mod2@losbasados.com",
-    "otromod@gmail.com"
+    "jesuslazarinos0@gmail.com",
+    "cargoso@gmail.com"
 ];
 
 // ELEMENTOS DOM
