@@ -814,14 +814,34 @@ function setupEventListeners() {
 
     btnAuth.addEventListener('click', () => {
         if (currentUser) {
+            const profileBirthdateInput = document.getElementById('profileBirthdate');
+            const birthdateNotice = document.getElementById('birthdateNotice');
+
             document.getElementById('profileNickname').value = currentUser.name;
-            document.getElementById('profileBirthdate').value = currentUser.birthdate || '';
+            profileBirthdateInput.value = currentUser.birthdate || '';
             
             const ageInfo = calculateAgeInfo(currentUser.birthdate);
             document.getElementById('profileAgeBadge').value = ageInfo.label;
             
             document.getElementById('profileAvatarUrl').value = currentUser.avatar;
             document.getElementById('profileAvatarPreview').src = currentUser.avatar;
+
+            // CONTROL DE BLOQUEO DE FECHA DE NACIMIENTO
+            const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
+            if (currentUser.birthdate && !isMod) {
+                profileBirthdateInput.disabled = true;
+                profileBirthdateInput.style.cursor = 'not-allowed';
+                profileBirthdateInput.style.opacity = '0.6';
+                if (birthdateNotice) birthdateNotice.textContent = "🔒 La fecha de nacimiento no se puede cambiar.";
+            } else {
+                profileBirthdateInput.disabled = false;
+                profileBirthdateInput.style.cursor = 'pointer';
+                profileBirthdateInput.style.opacity = '1';
+                if (birthdateNotice) {
+                    birthdateNotice.textContent = isMod ? "🛠️ (Mod Mode) Puedes cambiar la fecha para hacer pruebas." : "";
+                }
+            }
+
             document.getElementById('profileModal').classList.add('active');
         } else {
             document.getElementById('authModal').classList.add('active');
@@ -841,7 +861,14 @@ function setupEventListeners() {
     document.getElementById('formProfile').addEventListener('submit', (e) => {
         e.preventDefault();
         const newNick = document.getElementById('profileNickname').value;
-        const newBirthdate = document.getElementById('profileBirthdate').value;
+        const profileBirthdateInput = document.getElementById('profileBirthdate');
+        const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
+
+        // Si está bloqueado y no es mod, usamos la fecha que ya tenía registrada
+        const newBirthdate = (profileBirthdateInput.disabled && !isMod) 
+            ? currentUser.birthdate 
+            : profileBirthdateInput.value;
+
         const newAvatar = document.getElementById('profileAvatarUrl').value || `https://api.dicebear.com/7.x/bottts/svg?seed=${newNick}`;
         
         const ageInfo = calculateAgeInfo(newBirthdate);
