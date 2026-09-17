@@ -29,11 +29,15 @@ const defaultGames = [
     {
         id: "default-1",
         title: "Mario Kart Wii (PC Port)",
-        category: "Carreras",
+        category: ["Carreras", "Pantalla Compartida"],
         size: "2.9 GB",
         server: "MediaFire",
         image: "assets/img/MarioKartWii.png",
         downloadUrl: "https://ouo.io/gx2F6LP",
+        versions: [
+            { name: "v1.0 (Base Port)", downloadUrl: "https://ouo.io/gx2F6LP", server: "MediaFire" },
+            { name: "v1.2 (Modpack HD)", downloadUrl: "https://ouo.io/gx2F6LP", server: "MediaFire" }
+        ],
         featured: true,
         ageRestricted: false,
         specs: {
@@ -47,7 +51,7 @@ const defaultGames = [
     }
 ];
 
-const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro", "Android APK"];
+const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro", "Android APK", "Pantalla Compartida", "Un solo jugador", "Online"];
 
 const defaultNews = [
     { id: "news-1", title: "Nuevos Ports Optimizados", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en PC y móviles de gama baja/media." },
@@ -130,6 +134,23 @@ function detectDevice() {
         deviceIcon.className = `fas ${iconClass}`;
         deviceText.textContent = textLabel;
     }
+}
+
+// FORMATO DE GÉNEROS
+function formatGameGenres(category) {
+    if (!category) return "General";
+    
+    let genresArr = [];
+    if (Array.isArray(category)) {
+        genresArr = category;
+    } else if (typeof category === 'string') {
+        genresArr = category.split(',').map(s => s.trim());
+    }
+
+    if (genresArr.length === 0) return "General";
+    if (genresArr.length === 1) return genresArr[0];
+    if (genresArr.length === 2) return `${genresArr[0]}, ${genresArr[1]}`;
+    return `${genresArr[0]}, ${genresArr[1]}, más...`;
 }
 
 // CALCULAR EDAD
@@ -379,9 +400,18 @@ function setupCategoryEvents() {
             e.target.classList.add('active');
 
             const cat = e.target.dataset.cat;
-            if (cat === 'all') renderGames(loadedGames);
-            else if (cat === 'favs') renderGames(loadedGames.filter(g => favorites.includes(g.id)));
-            else renderGames(loadedGames.filter(g => g.category === cat));
+            if (cat === 'all') {
+                renderGames(loadedGames);
+            } else if (cat === 'favs') {
+                renderGames(loadedGames.filter(g => favorites.includes(g.id)));
+            } else {
+                renderGames(loadedGames.filter(g => {
+                    if (Array.isArray(g.category)) {
+                        return g.category.includes(cat);
+                    }
+                    return g.category === cat;
+                }));
+            }
         });
     });
 }
@@ -401,7 +431,7 @@ function renderNews() {
     `).join('');
 }
 
-// CATÁLOGO DE JUEGOS CON FALLBACK EN IMÁGENES
+// CATÁLOGO DE JUEGOS
 function renderGames(data) {
     gamesGrid.innerHTML = '';
 
@@ -431,19 +461,22 @@ function renderGames(data) {
             `;
         }
 
+        const versionCount = (game.versions && game.versions.length) ? game.versions.length : 1;
+        const genresFormatted = formatGameGenres(game.category);
+
         card.innerHTML = `
             <div class="card-img-wrap">
                 <img src="${game.image}" alt="${game.title}" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">
                 ${overlayHTML}
-                ${isMod ? `<button class="edit-card-btn" onclick="openAdminEditModal(event, '${game.id}')" title="Editar Juego"><i class="fas fa-edit"></i></button>` : ''}
+                ${isMod ? `<button class="edit-card-btn" onclick="openAdminEditModal(event, '${game.id}')" title="Editar Juego / Versiones"><i class="fas fa-edit"></i></button>` : ''}
                 ${!isBlocked ? `<button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${game.id}')"><i class="fas fa-heart"></i></button>` : ''}
             </div>
             <div class="card-info" ${!isBlocked ? `onclick="openGameModal('${game.id}')"` : ''}>
-                <span class="card-cat">${game.category} ${game.ageRestricted ? '<span class="badge-18-tag">+18</span>' : ''}</span>
+                <span class="card-cat">${genresFormatted} ${game.ageRestricted ? '<span class="badge-18-tag">+18</span>' : ''}</span>
                 <h4>${game.title}</h4>
                 <div class="card-meta">
                     <span><i class="fas fa-hdd"></i> ${game.size}</span>
-                    <span><i class="fas fa-server"></i> ${game.server}</span>
+                    <span><i class="fas fa-code-branch"></i> ${versionCount} Ver.</span>
                 </div>
             </div>
         `;
@@ -476,7 +509,7 @@ function toggleFav(e, gameId) {
     renderGames(loadedGames);
 }
 
-// MODAL JUEGO
+// MODAL JUEGO - CON SELECTOR DE MÚLTIPLES VERSIONES
 function openGameModal(id) {
     const game = loadedGames.find(g => g.id === id);
     if (!game) return;
@@ -497,12 +530,54 @@ function openGameModal(id) {
         `;
     }
 
+    // Asegurar que siempre exista al menos una versión
+    const versions = (game.versions && game.versions.length > 0) ? game.versions : [
+        { name: "Versión Estándar", downloadUrl: game.downloadUrl || "#", server: game.server || "MediaFire" }
+    ];
+
+    let versionsSelectorHTML = '';
+    if (versions.length > 1) {
+        versionsSelectorHTML = `
+            <div class="version-selector-container">
+                <label style="font-size:0.85rem; color:#aaa; font-weight:bold;">
+                    <i class="fas fa-layer-group"></i> Seleccionar Versión del Juego:
+                </label>
+                <div class="version-btn-grid" id="modalVersionButtons">
+                    ${versions.map((v, idx) => `
+                        <button class="version-btn ${idx === 0 ? 'active' : ''}" onclick="selectModalVersion(${idx}, '${id}')">
+                            <i class="fas fa-download"></i> ${v.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    const firstVersion = versions[0];
+    const genresFormatted = formatGameGenres(game.category);
+
     modalContent.innerHTML = `
-        <h2 style="font-family: var(--font-head); color: var(--neon-red); margin-bottom: 10px;">
+        <h2 style="font-family: var(--font-head); color: var(--neon-red); margin-bottom: 5px;">
             ${game.title} ${game.ageRestricted ? '<span class="badge-18-tag">+18</span>' : ''}
         </h2>
+        <div style="font-size: 0.85rem; color: var(--neon-red); font-weight: bold; margin-bottom: 12px; text-transform: uppercase;">
+            <i class="fas fa-tags"></i> ${genresFormatted}
+        </div>
         <p style="color:#ccc; margin-bottom: 15px;">${game.desc}</p>
         
+        ${versionsSelectorHTML}
+
+        <div style="background:#0a0a0f; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="download-version-box" style="margin-bottom: 12px;">
+                <span class="version-badge-tag" id="currentVersionTag">${firstVersion.name}</span>
+                <span style="font-size:0.85rem; color:#aaa;" id="currentVersionServer">Servidor: <strong>${firstVersion.server || game.server || 'MediaFire'}</strong></span>
+            </div>
+
+            <a href="${firstVersion.downloadUrl}" target="_blank" id="btnMainDownloadUrl" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
+                <i class="fas fa-download"></i> DESCARGAR AHORA (${firstVersion.server || game.server || 'MediaFire'})
+            </a>
+        </div>
+
         <div style="background:#0a0a0f; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <h4 style="color:var(--neon-red); margin-bottom: 8px;">Requisitos del Sistema:</h4>
             <ul style="list-style: none; color: #aaa; font-size: 0.9rem;">
@@ -512,10 +587,6 @@ function openGameModal(id) {
                 <li><strong>Gráficos:</strong> ${game.specs ? game.specs.gpu : 'Integrados'}</li>
             </ul>
         </div>
-
-        <a href="${game.downloadUrl}" target="_blank" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
-            <i class="fas fa-download"></i> LINK DE DESCARGA (${game.server})
-        </a>
 
         ${embedHTML}
 
@@ -585,6 +656,32 @@ function openGameModal(id) {
         });
     }
 }
+
+// CAMBIAR VERSIÓN EN MODAL DE DESCARGA
+window.selectModalVersion = function(index, gameId) {
+    const game = loadedGames.find(g => g.id === gameId);
+    if (!game || !game.versions || !game.versions[index]) return;
+
+    const selectedVer = game.versions[index];
+
+    const tag = document.getElementById('currentVersionTag');
+    const serverSpan = document.getElementById('currentVersionServer');
+    const btnDownload = document.getElementById('btnMainDownloadUrl');
+
+    if (tag) tag.textContent = selectedVer.name;
+    if (serverSpan) serverSpan.innerHTML = `Servidor: <strong>${selectedVer.server || game.server || 'MediaFire'}</strong>`;
+    if (btnDownload) {
+        btnDownload.href = selectedVer.downloadUrl;
+        btnDownload.innerHTML = `<i class="fas fa-download"></i> DESCARGAR (${selectedVer.name})`;
+    }
+
+    // Actualizar clase activa en los botones
+    const btns = document.querySelectorAll('#modalVersionButtons .version-btn');
+    btns.forEach((btn, idx) => {
+        if (idx === index) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+};
 
 window.openAuthFromModal = function() {
     document.getElementById('gameModal').classList.remove('active');
@@ -667,6 +764,61 @@ function initGameComments(gameId) {
     });
 }
 
+// GESTIÓN DINÁMICA DE CAMPOS DE VERSIÓN EN PANEL ADMIN
+function addVersionField(name = '', downloadUrl = '', server = 'MediaFire') {
+    const container = document.getElementById('versionsListContainer');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = 'version-item-row';
+    row.innerHTML = `
+        <button type="button" class="btn-del-version" onclick="removeVersionField(this)">&times;</button>
+        <div class="form-row">
+            <div class="form-group" style="margin-bottom:6px;">
+                <label>Nombre de la Versión</label>
+                <input type="text" class="ver-name" placeholder="Ej: v1.0 / 1.16.5 / Port HD" value="${name}" required>
+            </div>
+            <div class="form-group" style="margin-bottom:6px;">
+                <label>Servidor</label>
+                <input type="text" class="ver-server" placeholder="Ej: MediaFire / Google Drive" value="${server || 'MediaFire'}">
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+            <label>Link de Descarga MediaFire / Servidor</label>
+            <input type="url" class="ver-url" placeholder="https://mediafire.com/file/..." value="${downloadUrl}" required>
+        </div>
+    `;
+    container.appendChild(row);
+}
+
+window.removeVersionField = function(btn) {
+    const container = document.getElementById('versionsListContainer');
+    if (container.children.length > 1) {
+        btn.closest('.version-item-row').remove();
+    } else {
+        alert("El juego debe tener al menos una versión registrada.");
+    }
+};
+
+document.getElementById('btnAddVersionField').addEventListener('click', () => {
+    addVersionField();
+});
+
+function getVersionsFromForm() {
+    const rows = document.querySelectorAll('.version-item-row');
+    const versions = [];
+    rows.forEach(row => {
+        const name = row.querySelector('.ver-name').value.trim();
+        const server = row.querySelector('.ver-server').value.trim();
+        const downloadUrl = row.querySelector('.ver-url').value.trim();
+
+        if (name && downloadUrl) {
+            versions.push({ name, server, downloadUrl });
+        }
+    });
+    return versions;
+}
+
 // TABS ADMIN
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -698,12 +850,18 @@ function openAdminEditModal(e, id) {
 
     document.getElementById('adminGameId').value = game.id;
     document.getElementById('adminTitle').value = game.title;
-    document.getElementById('adminCategory').value = game.category;
+    
+    // Cargar Selección Múltiple de Géneros
+    const selectCat = document.getElementById('adminCategory');
+    const currentCats = Array.isArray(game.category) ? game.category : [game.category];
+    Array.from(selectCat.options).forEach(opt => {
+        opt.selected = currentCats.includes(opt.value);
+    });
+
     document.getElementById('adminSize').value = game.size;
     document.getElementById('adminServer').value = game.server;
     document.getElementById('adminImage').value = game.image;
     document.getElementById('adminAgeRestricted').value = game.ageRestricted ? "true" : "false";
-    document.getElementById('adminDownloadUrl').value = game.downloadUrl;
     document.getElementById('adminDesc').value = game.desc;
     document.getElementById('adminFeatured').checked = !!game.featured;
     document.getElementById('adminSo').value = game.specs ? game.specs.so : '';
@@ -711,6 +869,16 @@ function openAdminEditModal(e, id) {
     document.getElementById('adminRam').value = game.specs ? game.specs.ram : '';
     document.getElementById('adminGpu').value = game.specs ? game.specs.gpu : '';
     document.getElementById('adminEmbed').value = game.embed || '';
+
+    // Cargar Lista de Versiones
+    const container = document.getElementById('versionsListContainer');
+    container.innerHTML = '';
+
+    if (game.versions && game.versions.length > 0) {
+        game.versions.forEach(v => addVersionField(v.name, v.downloadUrl, v.server));
+    } else {
+        addVersionField("Versión Principal", game.downloadUrl || "", game.server || "MediaFire");
+    }
 
     document.getElementById('btnSaveAdminGame').textContent = "GUARDAR CAMBIOS";
     document.getElementById('btnCancelEdit').classList.remove('hidden');
@@ -723,6 +891,11 @@ document.getElementById('btnCancelEdit').addEventListener('click', resetAdminFor
 function resetAdminForm() {
     document.getElementById('formAdminGame').reset();
     document.getElementById('adminGameId').value = '';
+    
+    const container = document.getElementById('versionsListContainer');
+    container.innerHTML = '';
+    addVersionField("v1.0 Base", "", "MediaFire");
+
     document.getElementById('btnSaveAdminGame').textContent = "PUBLICAR / GUARDAR CAMBIOS";
     document.getElementById('btnCancelEdit').classList.add('hidden');
 }
@@ -730,15 +903,34 @@ function resetAdminForm() {
 document.getElementById('formAdminGame').addEventListener('submit', (e) => {
     e.preventDefault();
     const gameId = document.getElementById('adminGameId').value || 'game_' + Date.now();
+    const versions = getVersionsFromForm();
+
+    if (versions.length === 0) {
+        alert("Por favor, agrega al menos una versión del juego con su respectivo enlace de descarga.");
+        return;
+    }
+
+    const selectCat = document.getElementById('adminCategory');
+    const selectedCategories = Array.from(selectCat.selectedOptions).map(opt => opt.value);
+
+    if (selectedCategories.length === 0) {
+        alert("Por favor, selecciona al menos un género/categoría.");
+        return;
+    }
+
+    const mainDownloadUrl = versions[0].downloadUrl;
+    const mainServer = versions[0].server || document.getElementById('adminServer').value.trim() || 'MediaFire';
+
     const newGame = {
         id: gameId,
         title: document.getElementById('adminTitle').value.trim(),
-        category: document.getElementById('adminCategory').value,
+        category: selectedCategories,
         size: document.getElementById('adminSize').value.trim(),
-        server: document.getElementById('adminServer').value.trim(),
+        server: mainServer,
         image: document.getElementById('adminImage').value.trim(),
         ageRestricted: document.getElementById('adminAgeRestricted').value === "true",
-        downloadUrl: document.getElementById('adminDownloadUrl').value.trim(),
+        downloadUrl: mainDownloadUrl,
+        versions: versions,
         desc: document.getElementById('adminDesc').value.trim(),
         featured: document.getElementById('adminFeatured').checked,
         specs: {
@@ -752,7 +944,7 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
 
     gamesRef.child(gameId).set(newGame, (err) => {
         if (!err) {
-            alert("¡Juego guardado con éxito!");
+            alert("¡Juego y versiones guardados con éxito!");
             document.getElementById('adminModal').classList.remove('active');
             resetAdminForm();
         }
@@ -868,227 +1060,142 @@ function setupEventListeners() {
             const ageInfo = calculateAgeInfo(currentUser.birthdate);
             document.getElementById('profileAgeBadge').value = ageInfo.label;
             
-            document.getElementById('profileAvatarUrl').value = currentUser.avatar;
+            document.getElementById('profileAvatarUrl').value = currentUser.avatar || '';
             document.getElementById('profileAvatarPreview').src = currentUser.avatar;
-
-            const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
-            if (currentUser.birthdate && !isMod) {
-                profileBirthdateInput.disabled = true;
-                profileBirthdateInput.style.cursor = 'not-allowed';
-                profileBirthdateInput.style.opacity = '0.6';
-                if (birthdateNotice) birthdateNotice.textContent = "🔒 La fecha no se puede cambiar.";
-            } else {
-                profileBirthdateInput.disabled = false;
-                profileBirthdateInput.style.cursor = 'pointer';
-                profileBirthdateInput.style.opacity = '1';
-                if (birthdateNotice) birthdateNotice.textContent = isMod ? "🛠️ (Mod Mode) Puedes cambiar la fecha." : "";
-            }
-
             document.getElementById('profileModal').classList.add('active');
         } else {
             document.getElementById('authModal').classList.add('active');
         }
     });
 
-    window.selectPresetAvatar = function(url) {
-        document.getElementById('profileAvatarUrl').value = url;
-        document.getElementById('profileAvatarPreview').src = url;
-    };
-
-    document.getElementById('profileBirthdate').addEventListener('change', (e) => {
-        const ageInfo = calculateAgeInfo(e.target.value);
-        document.getElementById('profileAgeBadge').value = ageInfo.label;
+    // Pestañas Auth
+    document.getElementById('tabLogin').addEventListener('click', () => {
+        document.getElementById('tabLogin').classList.add('active');
+        document.getElementById('tabRegister').classList.remove('active');
+        document.getElementById('formLogin').classList.add('active');
+        document.getElementById('formRegister').classList.remove('active');
     });
 
+    document.getElementById('tabRegister').addEventListener('click', () => {
+        document.getElementById('tabRegister').classList.add('active');
+        document.getElementById('tabLogin').classList.remove('active');
+        document.getElementById('formRegister').classList.add('active');
+        document.getElementById('formLogin').classList.remove('active');
+    });
+
+    // Login Form
+    document.getElementById('formLogin').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const isMod = MODERATOR_EMAILS.includes(email);
+
+        currentUser = {
+            name: email.split('@')[0],
+            email: email,
+            birthdate: '2000-01-01',
+            isAdult: true,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`,
+            isMod: isMod
+        };
+
+        saveAndRefreshUser();
+        document.getElementById('authModal').classList.remove('active');
+    });
+
+    // Register Form
+    document.getElementById('formRegister').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('regUser').value.trim();
+        const birthdate = document.getElementById('regBirthdate').value;
+        const email = document.getElementById('regEmail').value.trim();
+        const isMod = MODERATOR_EMAILS.includes(email);
+
+        const ageInfo = calculateAgeInfo(birthdate);
+
+        currentUser = {
+            name: name,
+            email: email,
+            birthdate: birthdate,
+            isAdult: ageInfo.isAdult,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`,
+            isMod: isMod
+        };
+
+        saveAndRefreshUser();
+        document.getElementById('authModal').classList.remove('active');
+    });
+
+    // Profile Form
     document.getElementById('formProfile').addEventListener('submit', (e) => {
         e.preventDefault();
-        const newNick = document.getElementById('profileNickname').value;
-        const profileBirthdateInput = document.getElementById('profileBirthdate');
-        const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
+        if (currentUser) {
+            currentUser.name = document.getElementById('profileNickname').value.trim();
+            currentUser.birthdate = document.getElementById('profileBirthdate').value;
+            
+            const ageInfo = calculateAgeInfo(currentUser.birthdate);
+            currentUser.isAdult = ageInfo.isAdult;
 
-        const newBirthdate = (profileBirthdateInput.disabled && !isMod) 
-            ? currentUser.birthdate 
-            : profileBirthdateInput.value;
+            const customUrl = document.getElementById('profileAvatarUrl').value.trim();
+            if (customUrl) currentUser.avatar = customUrl;
 
-        const newAvatar = document.getElementById('profileAvatarUrl').value || `https://api.dicebear.com/7.x/bottts/svg?seed=${newNick}`;
-        const ageInfo = calculateAgeInfo(newBirthdate);
-
-        currentUser.name = newNick;
-        currentUser.birthdate = newBirthdate;
-        currentUser.age = ageInfo.age;
-        currentUser.isAdult = ageInfo.isAdult;
-        currentUser.avatar = newAvatar;
-        
-        localStorage.setItem('basados_user', JSON.stringify(currentUser));
-
-        if (currentUser.userId) {
-            usersRef.child(currentUser.userId).update({
-                name: newNick,
-                birthdate: newBirthdate,
-                age: ageInfo.age,
-                isAdult: ageInfo.isAdult,
-                avatar: newAvatar
-            });
+            saveAndRefreshUser();
+            document.getElementById('profileModal').classList.remove('active');
         }
-
-        updateUserUI();
-        updateFirebasePresence();
-        renderGames(loadedGames);
-        document.getElementById('profileModal').classList.remove('active');
     });
 
     document.getElementById('btnLogout').addEventListener('click', () => {
         currentUser = null;
         localStorage.removeItem('basados_user');
         updateUserUI();
-        updateFirebasePresence();
-        renderGames(loadedGames);
         document.getElementById('profileModal').classList.remove('active');
+        renderGames(loadedGames);
+        updateFirebasePresence();
     });
 
+    // Chat modal y envio
     document.getElementById('btnOnlineUsers').addEventListener('click', () => {
-        renderOnlineUsersSidebar();
         document.getElementById('onlineModal').classList.add('active');
     });
 
-    // EMOJI PICKER
-    const chatInputArea = document.querySelector('.chat-input-area');
-    if (chatInputArea && !document.getElementById('emojiPickerBtn')) {
-        const emojiBtn = document.createElement('button');
-        emojiBtn.type = 'button';
-        emojiBtn.id = 'emojiPickerBtn';
-        emojiBtn.className = 'btn-secondary';
-        emojiBtn.style.cssText = 'padding: 0 10px; background: #14141d; border: 1px solid #282836; font-size: 1.2rem; cursor: pointer; color: #fff;';
-        emojiBtn.innerHTML = '🔥';
-        
-        const emojiMenu = document.createElement('div');
-        emojiMenu.id = 'emojiMenu';
-        emojiMenu.className = 'hidden';
-        emojiMenu.style.cssText = 'position: absolute; bottom: 50px; right: 60px; background: #12121a; border: 1px solid var(--neon-red); border-radius: 8px; padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; z-index: 100; box-shadow: 0 0 15px rgba(0,0,0,0.8);';
-        
-        const emojis = ['🔥', '🎮', '😎', '👑', '🚀', '💯', '💀', '👀', '💪', 'xD'];
-        emojis.forEach(emoji => {
-            const span = document.createElement('span');
-            span.textContent = emoji;
-            span.style.cssText = 'cursor: pointer; font-size: 1.3rem; text-align: center; border-radius: 4px; padding: 2px;';
-            span.onclick = () => {
-                document.getElementById('chatInput').value += ` ${emoji} `;
-                emojiMenu.classList.add('hidden');
-                document.getElementById('chatInput').focus();
-            };
-            emojiMenu.appendChild(span);
-        });
-
-        chatInputArea.style.position = 'relative';
-        chatInputArea.appendChild(emojiMenu);
-        chatInputArea.insertBefore(emojiBtn, chatInputArea.querySelector('button[type="submit"]'));
-
-        emojiBtn.onclick = () => emojiMenu.classList.toggle('hidden');
-    }
-
     document.getElementById('formChat').addEventListener('submit', (e) => {
         e.preventDefault();
-        const textInput = document.getElementById('chatInput');
-        const text = textInput.value.trim();
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
         if (!text) return;
 
         messagesRef.push({
-            author: currentUser ? currentUser.name : "Invitado Basado",
+            author: currentUser ? currentUser.name : "Invitado",
             avatar: currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest",
             text: text,
             timestamp: Date.now()
         });
 
-        textInput.value = '';
-        const menu = document.getElementById('emojiMenu');
-        if (menu) menu.classList.add('hidden');
+        input.value = '';
     });
 
+    // Notificaciones modal
     document.getElementById('btnNotif').addEventListener('click', () => {
         document.getElementById('notifModal').classList.add('active');
     });
 
-    // TABS AUTH
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
-    const formLogin = document.getElementById('formLogin');
-    const formRegister = document.getElementById('formRegister');
-
-    tabLogin.addEventListener('click', () => {
-        tabLogin.classList.add('active'); tabRegister.classList.remove('active');
-        formLogin.classList.add('active'); formRegister.classList.remove('active');
-    });
-
-    tabRegister.addEventListener('click', () => {
-        tabRegister.classList.add('active'); tabLogin.classList.remove('active');
-        formRegister.classList.add('active'); formLogin.classList.remove('active');
-    });
-
-    // REGISTRO
-    formRegister.addEventListener('submit', (e) => {
+    document.getElementById('formNotif').addEventListener('submit', (e) => {
         e.preventDefault();
-        const name = document.getElementById('regUser').value.trim();
-        const birthdate = document.getElementById('regBirthdate').value;
-        const email = document.getElementById('regEmail').value.trim().toLowerCase();
-        const pass = document.getElementById('regPass').value;
-        const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
-
-        const ageInfo = calculateAgeInfo(birthdate);
-        const newUserRef = usersRef.push();
-        const userData = {
-            userId: newUserRef.key,
-            name: name,
-            birthdate: birthdate,
-            age: ageInfo.age,
-            isAdult: ageInfo.isAdult,
-            email: email,
-            pass: pass,
-            avatar: avatar,
-            isMod: MODERATOR_EMAILS.includes(email)
-        };
-
-        newUserRef.set(userData, (error) => {
-            if (!error) {
-                currentUser = userData;
-                localStorage.setItem('basados_user', JSON.stringify(currentUser));
-                updateUserUI();
-                updateFirebasePresence();
-                renderGames(loadedGames);
-                document.getElementById('authModal').classList.remove('active');
-                
-                const statusMessage = ageInfo.isAdult ? "Mayor de 18 años" : "Menor de 18 años";
-                alert(`¡Cuenta registrada!\nEdad: ${ageInfo.age} años (${statusMessage})`);
-            }
-        });
+        alert("¡Suscripción realizada con éxito!");
+        document.getElementById('notifModal').classList.remove('active');
     });
+}
 
-    // LOGIN
-    formLogin.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
-        const passInput = document.getElementById('loginPass').value;
+function selectPresetAvatar(url) {
+    document.getElementById('profileAvatarUrl').value = url;
+    document.getElementById('profileAvatarPreview').src = url;
+}
 
-        usersRef.orderByChild('email').equalTo(emailInput).once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const usersList = Object.values(data);
-                const matchedUser = usersList.find(u => u.pass === passInput);
-
-                if (matchedUser) {
-                    currentUser = matchedUser;
-                    localStorage.setItem('basados_user', JSON.stringify(currentUser));
-                    updateUserUI();
-                    updateFirebasePresence();
-                    renderGames(loadedGames);
-                    document.getElementById('authModal').classList.remove('active');
-                } else {
-                    alert("Contraseña incorrecta.");
-                }
-            } else {
-                alert("Correo no registrado.");
-            }
-        });
-    });
+function saveAndRefreshUser() {
+    localStorage.setItem('basados_user', JSON.stringify(currentUser));
+    updateUserUI();
+    renderGames(loadedGames);
+    renderNews();
+    updateFirebasePresence();
 }
 
 function updateUserUI() {
@@ -1098,8 +1205,11 @@ function updateUserUI() {
         userAvatarNav.classList.remove('hidden');
 
         const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
-        if (isMod) btnAdminPanel.classList.remove('hidden');
-        else btnAdminPanel.classList.add('hidden');
+        if (isMod) {
+            btnAdminPanel.classList.remove('hidden');
+        } else {
+            btnAdminPanel.classList.add('hidden');
+        }
     } else {
         userBtnText.textContent = "Ingresar";
         userAvatarNav.classList.add('hidden');
