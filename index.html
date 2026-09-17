@@ -22,9 +22,9 @@
 
     <!-- NAV BAR -->
     <nav class="navbar">
-        <a href="#" class="logo" style="display: flex; align-items: center; gap: 10px;">
-            <img src="assets/img/favicon.png" alt="Logo Los Basados" style="height: 35px; width: auto; object-fit: contain;">
-            <span>LOS <span style="color: var(--neon-red);">BASADOS</span></span>
+        <a href="#" class="logo">
+            <img src="assets/img/favicon.png" alt="Logo Los Basados">
+            <span>LOS <span>BASADOS</span></span>
         </a>
         
         <div class="search-box">
@@ -33,7 +33,7 @@
         </div>
 
         <div class="nav-actions">
-            <!-- BOTÓN PANEL ADMIN / MODERADOR (OCULTO POR DEFECTO) -->
+            <!-- BOTÓN PANEL ADMIN / MODERADOR -->
             <button class="icon-btn admin-btn hidden" id="btnAdminPanel" title="Panel de Moderador">
                 <i class="fas fa-tools"></i>
             </button>
@@ -67,7 +67,7 @@
                 </div>
             </section>
 
-            <!-- CATEGORÍAS (DINÁMICAS DESDE FIREBASE) -->
+            <!-- CATEGORÍAS -->
             <div class="categories-bar" id="categoriesBar">
                 <!-- Se cargará dinámicamente -->
             </div>
@@ -76,7 +76,7 @@
             <section class="games-section">
                 <h3 class="section-title">Catálogo Completo</h3>
                 <div class="games-grid" id="gamesGrid">
-                    <!-- Los juegos se cargan dinámicamente desde Firebase -->
+                    <!-- Los juegos se cargan dinámicamente -->
                 </div>
             </section>
         </main>
@@ -91,11 +91,8 @@
                     <span class="twitch-live-tag"><i class="fas fa-broadcast-tower"></i> VAZE_z06</span>
                 </div>
                 <div class="twitch-player-container">
-                    <!-- Embed de Twitch cargado para el canal VAZE_z06 -->
                     <iframe 
                         src="https://player.twitch.tv/?channel=vaze_z06&parent=localhost&parent=127.0.0.1&muted=true" 
-                        height="100%" 
-                        width="100%" 
                         allowfullscreen="true">
                     </iframe>
                 </div>
@@ -114,7 +111,7 @@
         </aside>
     </div>
 
-    <!-- MODAL DE DESCARGA DE JUEGO, TUTORIAL Y COMENTARIOS -->
+    <!-- MODAL DE DESCARGA DE JUEGO -->
     <div class="modal-overlay" id="gameModal">
         <div class="modal-box game-modal-box">
             <button class="modal-close" id="closeGameModal">&times;</button>
@@ -124,7 +121,7 @@
         </div>
     </div>
 
-    <!-- MODAL PANEL DE MODERADOR / GESTIÓN MULTI-PESTAÑA -->
+    <!-- MODAL PANEL DE MODERADOR -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box admin-modal-box">
             <button class="modal-close" id="closeAdminModal">&times;</button>
@@ -132,14 +129,12 @@
                 <i class="fas fa-tools"></i> Panel de Moderador / Publicador
             </h3>
 
-            <!-- Pestañas del Panel Admin -->
             <div class="admin-tabs">
                 <button class="tab-btn active" id="tabAdminGames" onclick="switchAdminTab('games')">🎮 Juegos</button>
                 <button class="tab-btn" id="tabAdminNews" onclick="switchAdminTab('news')">📰 Noticias</button>
                 <button class="tab-btn" id="tabAdminGenres" onclick="switchAdminTab('genres')">🏷️ Categorías</button>
             </div>
             
-            <!-- PESTAÑA 1: GESTIÓN DE JUEGOS -->
             <div id="contentAdminGames" class="admin-tab-content active">
                 <form id="formAdminGame">
                     <input type="hidden" id="adminGameId">
@@ -150,9 +145,7 @@
                         </div>
                         <div class="form-group">
                             <label>Categoría</label>
-                            <select id="adminCategory" class="custom-select" required>
-                                <!-- Se llena dinámicamente desde Firebase -->
-                            </select>
+                            <select id="adminCategory" class="custom-select" required></select>
                         </div>
                     </div>
 
@@ -169,7 +162,7 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Ruta de Imagen (Ruta local o URL)</label>
+                            <label>Ruta de Imagen (Local o URL)</label>
                             <input type="text" id="adminImage" placeholder="assets/img/juego.png o https://link.com/imagen.png" required>
                         </div>
                         <div class="form-group">
@@ -197,7 +190,6 @@
                         </label>
                     </div>
 
-                    <!-- REQUISITOS DEL SISTEMA -->
                     <h4 style="color:#fff; margin: 15px 0 10px 0;">Requisitos del Sistema</h4>
                     <div class="form-row">
                         <div class="form-group"><input type="text" id="adminSo" placeholder="SO: Win 10 / Android 10 / iOS 15"></div>
@@ -208,9 +200,8 @@
                         <div class="form-group"><input type="text" id="adminGpu" placeholder="GPU: Adreno 618 / GTX 750 Ti"></div>
                     </div>
 
-                    <!-- TUTORIAL EMBED HTML -->
                     <div class="form-group">
-                        <label>Código Embed de Video / Tutorial (Iframe de Google Drive o YouTube)</label>
+                        <label>Código Embed de Video / Tutorial</label>
                         <textarea id="adminEmbed" rows="3" class="custom-textarea" placeholder='<iframe src="https://drive.google.com/file/d/..." width="640" height="360"></iframe>'></textarea>
                     </div>
 
@@ -221,7 +212,6 @@
                 </form>
             </div>
 
-            <!-- PESTAÑA 2: GESTIÓN DE NOTICIAS -->
             <div id="contentAdminNews" class="admin-tab-content hidden">
                 <form id="formAdminNews">
                     <input type="hidden" id="newsId">
@@ -245,7 +235,6 @@
                 <div id="adminNewsList" class="admin-list-container"></div>
             </div>
 
-            <!-- PESTAÑA 3: GESTIÓN DE CATEGORÍAS -->
             <div id="contentAdminGenres" class="admin-tab-content hidden">
                 <form id="formAdminGenre">
                     <div class="form-group">
@@ -271,7 +260,6 @@
                 <button class="auth-tab" id="tabRegister">Registrarse</button>
             </div>
 
-            <!-- Form Login -->
             <form id="formLogin" class="auth-form active">
                 <div class="form-group">
                     <label>Correo Electrónico</label>
@@ -284,7 +272,6 @@
                 <button type="submit" class="btn-primary full-width">ENTRAR</button>
             </form>
 
-            <!-- Form Registro -->
             <form id="formRegister" class="auth-form">
                 <div class="form-group">
                     <label>Nombre de Usuario (Apodo)</label>
@@ -350,7 +337,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE USUARIOS EN LÍNEA & FORO COMUNITARIO -->
+    <!-- MODAL DE USUARIOS EN LÍNEA & FORO -->
     <div class="modal-overlay" id="onlineModal">
         <div class="modal-box forum-modal-box">
             <button class="modal-close" id="closeOnlineModal">&times;</button>
@@ -361,13 +348,11 @@
             </div>
 
             <div class="forum-layout">
-                <!-- Lista de Usuarios Conectados -->
                 <div class="online-users-sidebar">
                     <h4>Conectados</h4>
                     <ul class="users-list" id="onlineUsersList"></ul>
                 </div>
 
-                <!-- Chat / Foro General -->
                 <div class="chat-container">
                     <div class="chat-messages" id="chatMessages"></div>
 
@@ -398,7 +383,7 @@
         </div>
     </div>
 
-    <!-- SDKs de Firebase (Compatibilidad CDN Directa) -->
+    <!-- SDKs de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
