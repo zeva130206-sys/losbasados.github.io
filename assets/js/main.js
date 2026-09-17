@@ -21,6 +21,9 @@ const newsRef = db.ref('news');
 const genresRef = db.ref('genres');
 const commentsRef = db.ref('comments');
 
+// IMAGEN POR DEFECTO PARA FALLBACKS
+const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
+
 // DATOS BASE INICIALES
 const defaultGames = [
     {
@@ -39,7 +42,7 @@ const defaultGames = [
             ram: "4 GB RAM",
             gpu: "Intel HD 4000 / Nvidia GT 710"
         },
-        desc: "El clásico juego de carreras de Nintendo totalmente adaptado para PC.",
+        desc: "El clásico juego de carreras totalmente adaptado para PC.",
         embed: ""
     }
 ];
@@ -47,9 +50,9 @@ const defaultGames = [
 const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro", "Android APK"];
 
 const defaultNews = [
-    { id: "news-1", title: "Nuevos Ports Optimizados para PC y Android", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en computadoras y móviles de gama baja y media sin tirones." },
-    { id: "news-2", title: "Actualización de Servidores", date: "12 SEPT, 2026", content: "Todos los enlaces directos están migrando a servidores de alta velocidad (MediaFire / Directo)." },
-    { id: "news-3", title: "Comunidad LOS BASADOS", date: "10 SEPT, 2026", content: "Usa nuestro nuevo Foro en Línea o únete al Discord oficial para pedir tus juegos favoritos." }
+    { id: "news-1", title: "Nuevos Ports Optimizados", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en PC y móviles de gama baja/media." },
+    { id: "news-2", title: "Actualización de Servidores", date: "12 SEPT, 2026", content: "Todos los enlaces directos están migrando a servidores de alta velocidad." },
+    { id: "news-3", title: "Comunidad LOS BASADOS", date: "10 SEPT, 2026", content: "Usa nuestro nuevo Foro en Línea o únete al Discord oficial." }
 ];
 
 // ESTADO GLOBAL
@@ -62,15 +65,12 @@ let currentOnlineList = [];
 let myUserRef = null;
 let currentDeviceInfo = { type: 'pc', os: 'windows' };
 
-// VARIABLES DE COMENTARIOS Y ESTRELLAS
 let selectedRating = 5;
 let currentActiveGameCommentsRef = null;
 
-// VARIABLES DEL CARRUSEL
 let carouselIndex = 0;
 let carouselTimer = null;
 
-// LISTA DE CORREOS MODERADORES PERMITIDOS
 const MODERATOR_EMAILS = [
     "esva@losbasados.com",
     "jesuslazarinos0@gmail.com",
@@ -85,7 +85,7 @@ const userBtnText = document.getElementById('userBtnText');
 const userAvatarNav = document.getElementById('userAvatarNav');
 const btnAdminPanel = document.getElementById('btnAdminPanel');
 
-// DETECTOR AUTOMÁTICO DE DISPOSITIVOS Y SISTEMA OPERATIVO
+// DETECTOR DE DISPOSITIVOS
 function detectDevice() {
     const ua = navigator.userAgent || navigator.vendor || window.opera;
     const width = window.innerWidth;
@@ -95,20 +95,12 @@ function detectDevice() {
     let iconClass = 'fa-desktop';
     let textLabel = 'PC / Windows';
 
-    // Detección de OS
-    if (/android/i.test(ua)) {
-        os = 'android';
-    } else if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-        os = 'ios';
-    } else if (/Win/i.test(ua)) {
-        os = 'windows';
-    } else if (/Mac/i.test(ua)) {
-        os = 'mac';
-    } else if (/Linux/i.test(ua)) {
-        os = 'linux';
-    }
+    if (/android/i.test(ua)) os = 'android';
+    else if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) os = 'ios';
+    else if (/Win/i.test(ua)) os = 'windows';
+    else if (/Mac/i.test(ua)) os = 'mac';
+    else if (/Linux/i.test(ua)) os = 'linux';
 
-    // Detección de Tipo de Dispositivo (Móvil, Tablet o PC)
     const isTabletUA = /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua);
     
     if (isTabletUA || (width >= 600 && width <= 1024 && ('ontouchstart' in window || navigator.maxTouchPoints > 0))) {
@@ -127,11 +119,9 @@ function detectDevice() {
 
     currentDeviceInfo = { type, os, label: textLabel, icon: iconClass };
 
-    // Aplicar Clases CSS al <body> para estilos adaptativos
     document.body.classList.remove('device-pc', 'device-mobile', 'device-tablet', 'os-android', 'os-ios');
     document.body.classList.add(`device-${type}`, `os-${os}`);
 
-    // Actualizar Badge Flotante en la Web
     const deviceBadge = document.getElementById('deviceBadge');
     const deviceIcon = document.getElementById('deviceIcon');
     const deviceText = document.getElementById('deviceText');
@@ -142,7 +132,7 @@ function detectDevice() {
     }
 }
 
-// CALCULAR EDAD Y DETERMINAR SI ES MAYOR DE EDAD
+// CALCULAR EDAD
 function calculateAgeInfo(birthdateString) {
     if (!birthdateString) return { age: 0, isAdult: false, label: "Edad no registrada" };
     
@@ -173,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTwitchEmbedParentDomain();
 });
 
-// ACTUALIZACIÓN DINÁMICA DEL DOMINIO PARA EL PLAYER DE TWITCH
+// EMBED TWITCH DOMINIO
 function updateTwitchEmbedParentDomain() {
     const twitchIframe = document.querySelector('.twitch-player-container iframe');
     if (twitchIframe) {
@@ -182,9 +172,9 @@ function updateTwitchEmbedParentDomain() {
     }
 }
 
-// ESCUCHAR DATOS EN TIEMPO REAL EN FIREBASE
+// FIREBASE EN TIEMPO REAL
 function initRealtimeFirebase() {
-    // 1. Juegos & Carrusel
+    // 1. Juegos
     gamesRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -197,7 +187,7 @@ function initRealtimeFirebase() {
         renderHeroCarousel(loadedGames);
     });
 
-    // 2. Categorías / Géneros
+    // 2. Categorías
     genresRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -210,7 +200,7 @@ function initRealtimeFirebase() {
         renderAdminGenres();
     });
 
-    // 3. Noticias Gaming
+    // 3. Noticias
     newsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -223,7 +213,7 @@ function initRealtimeFirebase() {
         renderAdminNews();
     });
 
-    // 4. Chat en vivo
+    // 4. Chat
     messagesRef.limitToLast(50).on('value', (snapshot) => {
         const data = snapshot.val();
         const chatMessages = document.getElementById('chatMessages');
@@ -235,17 +225,16 @@ function initRealtimeFirebase() {
                 msgDiv.className = 'chat-msg';
 
                 const imageUrlPattern = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)(?:\?.*)?|https?:\/\/cdn\.discordapp\.com\/attachments\/[^\s]+|https?:\/\/media\.discordapp\.net\/attachments\/[^\s]+)/i;
-                
                 let formattedText = msg.text;
 
                 if (imageUrlPattern.test(msg.text)) {
                     formattedText = msg.text.replace(imageUrlPattern, (url) => {
-                        return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Haz clic para ampliar la imagen" alt="Imagen del chat">`;
+                        return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Ampliar imagen" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">`;
                     });
                 }
 
                 msgDiv.innerHTML = `
-                    <img src="${msg.avatar}" alt="${msg.author}">
+                    <img src="${msg.avatar}" alt="${msg.author}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
                     <div class="chat-msg-content">
                         <span class="chat-author">${msg.author}</span>
                         <p class="chat-text">${formattedText}</p>
@@ -272,7 +261,7 @@ function initRealtimeFirebase() {
     });
 }
 
-// VISTA PREVIA FLOTANTE DE IMÁGENES
+// LIGHTBOX
 window.openImageModal = function(url) {
     let lightbox = document.getElementById('imageLightbox');
     if (!lightbox) {
@@ -282,7 +271,7 @@ window.openImageModal = function(url) {
         lightbox.innerHTML = `
             <div class="image-lightbox-content">
                 <button class="image-lightbox-close" onclick="closeImageModal()">&times;</button>
-                <img id="lightboxImg" src="" alt="Vista previa de imagen">
+                <img id="lightboxImg" src="" alt="Vista previa">
             </div>
         `;
         document.body.appendChild(lightbox);
@@ -298,9 +287,7 @@ window.openImageModal = function(url) {
 
 window.closeImageModal = function() {
     const lightbox = document.getElementById('imageLightbox');
-    if (lightbox) {
-        lightbox.classList.remove('active');
-    }
+    if (lightbox) lightbox.classList.remove('active');
 };
 
 function updateFirebasePresence() {
@@ -318,12 +305,12 @@ function renderOnlineUsersSidebar() {
     currentOnlineList.forEach(u => {
         const li = document.createElement('li');
         const devTag = u.device ? `<small style="font-size:0.7rem; color:#888;">[${u.device}]</small>` : '';
-        li.innerHTML = `<img src="${u.avatar}" alt="${u.name}"> <span>${u.name} ${devTag}</span>`;
+        li.innerHTML = `<img src="${u.avatar}" alt="${u.name}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';"> <span>${u.name} ${devTag}</span>`;
         usersList.appendChild(li);
     });
 }
 
-// CARRUSEL AUTOMÁTICO DE DESTACADOS
+// CARRUSEL DESTACADOS
 function renderHeroCarousel(games) {
     const featuredGames = games.filter(g => g.featured);
     const container = document.getElementById('heroCarousel');
@@ -334,7 +321,7 @@ function renderHeroCarousel(games) {
                 <div class="hero-content">
                     <span class="badge">DESTACADO DE LA SEMANA</span>
                     <h2>MARIO KART WII (PC PORT)</h2>
-                    <p>Corre las mejores pistas del clásico de Wii directo en tu PC con gráficos mejorados.</p>
+                    <p>El clásico de Wii directo en tu PC con gráficos mejorados.</p>
                     <button class="btn-primary" onclick="openGameModal('default-1')"><i class="fas fa-download"></i> DESCARGAR AHORA</button>
                 </div>
             </div>
@@ -368,7 +355,7 @@ function renderHeroCarousel(games) {
     }
 }
 
-// RENDER DE CATEGORÍAS BAR
+// CATEGORÍAS
 function renderCategoriesBar() {
     const bar = document.getElementById('categoriesBar');
     const select = document.getElementById('adminCategory');
@@ -392,18 +379,14 @@ function setupCategoryEvents() {
             e.target.classList.add('active');
 
             const cat = e.target.dataset.cat;
-            if (cat === 'all') {
-                renderGames(loadedGames);
-            } else if (cat === 'favs') {
-                renderGames(loadedGames.filter(g => favorites.includes(g.id)));
-            } else {
-                renderGames(loadedGames.filter(g => g.category === cat));
-            }
+            if (cat === 'all') renderGames(loadedGames);
+            else if (cat === 'favs') renderGames(loadedGames.filter(g => favorites.includes(g.id)));
+            else renderGames(loadedGames.filter(g => g.category === cat));
         });
     });
 }
 
-// RENDEREAR NOTICIAS
+// NOTICIAS
 function renderNews() {
     const newsContainer = document.getElementById('newsContainer');
     const isMod = currentUser && (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email));
@@ -418,7 +401,7 @@ function renderNews() {
     `).join('');
 }
 
-// RENDER CATÁLOGO DE JUEGOS CON FILTRO Y RESTRICCIÓN DE EDAD (+18)
+// CATÁLOGO DE JUEGOS CON FALLBACK EN IMÁGENES
 function renderGames(data) {
     gamesGrid.innerHTML = '';
 
@@ -443,14 +426,14 @@ function renderGames(data) {
                 <div class="age-lock-overlay">
                     <i class="fas fa-user-lock"></i>
                     <span class="badge-18">+18 AÑOS</span>
-                    <p>${currentUser ? 'Debes ser mayor de edad para ver este contenido.' : 'Inicia sesión y confirma tu edad para desbloquear.'}</p>
+                    <p>${currentUser ? 'Para mayores de edad.' : 'Inicia sesión para ver.'}</p>
                 </div>
             `;
         }
 
         card.innerHTML = `
             <div class="card-img-wrap">
-                <img src="${game.image}" alt="${game.title}">
+                <img src="${game.image}" alt="${game.title}" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">
                 ${overlayHTML}
                 ${isMod ? `<button class="edit-card-btn" onclick="openAdminEditModal(event, '${game.id}')" title="Editar Juego"><i class="fas fa-edit"></i></button>` : ''}
                 ${!isBlocked ? `<button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${game.id}')"><i class="fas fa-heart"></i></button>` : ''}
@@ -468,7 +451,7 @@ function renderGames(data) {
         if (isBlocked) {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.edit-card-btn')) return;
-                alert("⚠️ Juego Restringido: Este título contiene contenido para mayores de 18 años. " + (currentUser ? "Tu perfil indica que eres menor de edad." : "Debes iniciar sesión con una cuenta de mayor de edad para acceder."));
+                alert("⚠️ Contenido restringido para mayores de 18 años.");
             });
         }
 
@@ -493,14 +476,13 @@ function toggleFav(e, gameId) {
     renderGames(loadedGames);
 }
 
-// ABRIR MODAL JUEGO
+// MODAL JUEGO
 function openGameModal(id) {
     const game = loadedGames.find(g => g.id === id);
     if (!game) return;
 
-    // CONTROL DE EDAD EN MODAL
     if (game.ageRestricted && (!currentUser || !currentUser.isAdult)) {
-        alert("⚠️ Acceso denegado: Este juego requiere confirmación de ser mayor de 18 años.");
+        alert("⚠️ Acceso denegado: Requiere confirmación de edad (+18).");
         return;
     }
 
@@ -508,7 +490,7 @@ function openGameModal(id) {
     let embedHTML = '';
     if (game.embed && game.embed.trim() !== '') {
         embedHTML = `
-            <h4 style="color:var(--neon-red); margin: 20px 0 10px 0;"><i class="fas fa-video"></i> Tutorial de Instalación / Demo:</h4>
+            <h4 style="color:var(--neon-red); margin: 20px 0 10px 0;"><i class="fas fa-video"></i> Tutorial / Demo:</h4>
             <div class="embed-video-container">
                 ${game.embed}
             </div>
@@ -522,22 +504,21 @@ function openGameModal(id) {
         <p style="color:#ccc; margin-bottom: 15px;">${game.desc}</p>
         
         <div style="background:#0a0a0f; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <h4 style="color:var(--neon-red); margin-bottom: 8px;">Requisitos del Sistema / Dispositivo:</h4>
+            <h4 style="color:var(--neon-red); margin-bottom: 8px;">Requisitos del Sistema:</h4>
             <ul style="list-style: none; color: #aaa; font-size: 0.9rem;">
-                <li><strong>SO:</strong> ${game.specs ? game.specs.so : 'Windows / Android / iOS'}</li>
-                <li><strong>Procesador:</strong> ${game.specs ? game.specs.cpu : 'Quad Core / Octa-Core'}</li>
+                <li><strong>SO:</strong> ${game.specs ? game.specs.so : 'Windows / Android'}</li>
+                <li><strong>Procesador:</strong> ${game.specs ? game.specs.cpu : 'Quad Core'}</li>
                 <li><strong>RAM:</strong> ${game.specs ? game.specs.ram : '4 GB'}</li>
-                <li><strong>Gráficos:</strong> ${game.specs ? game.specs.gpu : 'Integrados / Mali / Adreno'}</li>
+                <li><strong>Gráficos:</strong> ${game.specs ? game.specs.gpu : 'Integrados'}</li>
             </ul>
         </div>
 
         <a href="${game.downloadUrl}" target="_blank" class="btn-primary" style="display:inline-block; text-decoration:none; text-align:center;">
-            <i class="fas fa-download"></i> IR A LINK DE DESCARGA (${game.server})
+            <i class="fas fa-download"></i> LINK DE DESCARGA (${game.server})
         </a>
 
         ${embedHTML}
 
-        <!-- COMENTARIOS -->
         <div class="game-comments-section">
             <h3 class="game-comments-title"><i class="fas fa-star" style="color:#ffca28;"></i> Reseñas & Comentarios</h3>
             
@@ -564,13 +545,13 @@ function openGameModal(id) {
                             <i class="fas fa-star active" data-value="5"></i>
                         </div>
                     </div>
-                    <textarea id="gameCommentText" placeholder="Escribe tu opinión o reseña de este juego..." required></textarea>
+                    <textarea id="gameCommentText" placeholder="Escribe tu reseña..." required></textarea>
                     <button type="submit" class="btn-primary" style="align-self:flex-end;"><i class="fas fa-paper-plane"></i> PUBLICAR RESEÑA</button>
                 </form>
             ` : `
                 <div class="login-to-comment-box">
-                    <p><i class="fas fa-lock"></i> Debes iniciar sesión para dejar un comentario y calificar este juego.</p>
-                    <button class="btn-primary" style="margin:0 auto; font-size:0.85rem;" onclick="openAuthFromModal()"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión / Registrarse</button>
+                    <p><i class="fas fa-lock"></i> Inicia sesión para comentar y calificar.</p>
+                    <button class="btn-primary" style="margin:0 auto; font-size:0.85rem;" onclick="openAuthFromModal()"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
                 </div>
             `}
 
@@ -599,9 +580,7 @@ function openGameModal(id) {
                 text: text,
                 timestamp: Date.now()
             }, (err) => {
-                if (!err) {
-                    document.getElementById('gameCommentText').value = '';
-                }
+                if (!err) document.getElementById('gameCommentText').value = '';
             });
         });
     }
@@ -643,7 +622,7 @@ function initGameComments(gameId) {
         if (!container) return;
 
         if (!data) {
-            container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Sé el primero en comentar y calificar este juego.</p>';
+            container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Sé el primero en comentar.</p>';
             if (avgValEl) avgValEl.textContent = '0.0';
             if (votesEl) votesEl.textContent = '0 valoraciones';
             if (starsAvgEl) starsAvgEl.textContent = '☆☆☆☆☆';
@@ -663,7 +642,7 @@ function initGameComments(gameId) {
             const item = document.createElement('div');
             item.className = 'comment-item';
             item.innerHTML = `
-                <img src="${c.avatar}" alt="${c.author}">
+                <img src="${c.avatar}" alt="${c.author}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
                 <div class="comment-main">
                     <div class="comment-header">
                         <span class="comment-author">${c.author}</span>
@@ -688,7 +667,7 @@ function initGameComments(gameId) {
     });
 }
 
-// TABS MODERADOR
+// TABS ADMIN
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
@@ -705,7 +684,7 @@ window.switchAdminTab = function(tab) {
     }
 };
 
-// ADMINISTRACIÓN DE JUEGOS
+// ADMIN JUEGOS
 btnAdminPanel.addEventListener('click', () => {
     resetAdminForm();
     switchAdminTab('games');
@@ -733,7 +712,7 @@ function openAdminEditModal(e, id) {
     document.getElementById('adminGpu').value = game.specs ? game.specs.gpu : '';
     document.getElementById('adminEmbed').value = game.embed || '';
 
-    document.getElementById('btnSaveAdminGame').textContent = "GUARDAR CAMBIOS DEL JUEGO";
+    document.getElementById('btnSaveAdminGame').textContent = "GUARDAR CAMBIOS";
     document.getElementById('btnCancelEdit').classList.remove('hidden');
     switchAdminTab('games');
     document.getElementById('adminModal').classList.add('active');
@@ -773,14 +752,14 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
 
     gamesRef.child(gameId).set(newGame, (err) => {
         if (!err) {
-            alert("¡Juego guardado correctamente!");
+            alert("¡Juego guardado con éxito!");
             document.getElementById('adminModal').classList.remove('active');
             resetAdminForm();
         }
     });
 });
 
-// ADMINISTRACIÓN DE NOTICIAS
+// ADMIN NOTICIAS
 document.getElementById('formAdminNews').addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('newsId').value || 'news_' + Date.now();
@@ -793,7 +772,7 @@ document.getElementById('formAdminNews').addEventListener('submit', (e) => {
 
     newsRef.child(id).set(newsData, (err) => {
         if (!err) {
-            alert("Noticia guardada con éxito.");
+            alert("Noticia guardada.");
             resetNewsForm();
         }
     });
@@ -815,9 +794,7 @@ window.editNews = function(id) {
 };
 
 window.deleteNews = function(id) {
-    if (confirm("¿Seguro que deseas eliminar esta noticia?")) {
-        newsRef.child(id).remove();
-    }
+    if (confirm("¿Eliminar noticia?")) newsRef.child(id).remove();
 };
 
 function resetNewsForm() {
@@ -843,23 +820,19 @@ function renderAdminNews() {
     `).join('');
 }
 
-// ADMINISTRACIÓN DE CATEGORÍAS
+// ADMIN CATEGORÍAS
 document.getElementById('formAdminGenre').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('genreName').value.trim();
     if (name) {
         genresRef.child(name).set({ name: name }, (err) => {
-            if (!err) {
-                document.getElementById('genreName').value = '';
-            }
+            if (!err) document.getElementById('genreName').value = '';
         });
     }
 });
 
 window.deleteGenre = function(name) {
-    if (confirm(`¿Eliminar la categoría "${name}"?`)) {
-        genresRef.child(name).remove();
-    }
+    if (confirm(`¿Eliminar categoría "${name}"?`)) genresRef.child(name).remove();
 };
 
 function renderAdminGenres() {
@@ -872,7 +845,7 @@ function renderAdminGenres() {
     `).join('');
 }
 
-// EVENTOS GENERALES Y AUTENTICACIÓN
+// EVENTOS & AUTENTICACIÓN
 function setupEventListeners() {
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -898,20 +871,17 @@ function setupEventListeners() {
             document.getElementById('profileAvatarUrl').value = currentUser.avatar;
             document.getElementById('profileAvatarPreview').src = currentUser.avatar;
 
-            // CONTROL DE BLOQUEO DE FECHA DE NACIMIENTO
             const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
             if (currentUser.birthdate && !isMod) {
                 profileBirthdateInput.disabled = true;
                 profileBirthdateInput.style.cursor = 'not-allowed';
                 profileBirthdateInput.style.opacity = '0.6';
-                if (birthdateNotice) birthdateNotice.textContent = "🔒 La fecha de nacimiento no se puede cambiar.";
+                if (birthdateNotice) birthdateNotice.textContent = "🔒 La fecha no se puede cambiar.";
             } else {
                 profileBirthdateInput.disabled = false;
                 profileBirthdateInput.style.cursor = 'pointer';
                 profileBirthdateInput.style.opacity = '1';
-                if (birthdateNotice) {
-                    birthdateNotice.textContent = isMod ? "🛠️ (Mod Mode) Puedes cambiar la fecha para hacer pruebas." : "";
-                }
+                if (birthdateNotice) birthdateNotice.textContent = isMod ? "🛠️ (Mod Mode) Puedes cambiar la fecha." : "";
             }
 
             document.getElementById('profileModal').classList.add('active');
@@ -936,13 +906,11 @@ function setupEventListeners() {
         const profileBirthdateInput = document.getElementById('profileBirthdate');
         const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
 
-        // Si está bloqueado y no es mod, usamos la fecha que ya tenía registrada
         const newBirthdate = (profileBirthdateInput.disabled && !isMod) 
             ? currentUser.birthdate 
             : profileBirthdateInput.value;
 
         const newAvatar = document.getElementById('profileAvatarUrl').value || `https://api.dicebear.com/7.x/bottts/svg?seed=${newNick}`;
-        
         const ageInfo = calculateAgeInfo(newBirthdate);
 
         currentUser.name = newNick;
@@ -965,7 +933,7 @@ function setupEventListeners() {
 
         updateUserUI();
         updateFirebasePresence();
-        renderGames(loadedGames); // Re-renderizar catálogo con nuevo estado de edad
+        renderGames(loadedGames);
         document.getElementById('profileModal').classList.remove('active');
     });
 
@@ -1015,9 +983,7 @@ function setupEventListeners() {
         chatInputArea.appendChild(emojiMenu);
         chatInputArea.insertBefore(emojiBtn, chatInputArea.querySelector('button[type="submit"]'));
 
-        emojiBtn.onclick = () => {
-            emojiMenu.classList.toggle('hidden');
-        };
+        emojiBtn.onclick = () => emojiMenu.classList.toggle('hidden');
     }
 
     document.getElementById('formChat').addEventListener('submit', (e) => {
@@ -1042,7 +1008,7 @@ function setupEventListeners() {
         document.getElementById('notifModal').classList.add('active');
     });
 
-    // TABS LOGIN / REGISTRO
+    // TABS AUTH
     const tabLogin = document.getElementById('tabLogin');
     const tabRegister = document.getElementById('tabRegister');
     const formLogin = document.getElementById('formLogin');
@@ -1058,7 +1024,7 @@ function setupEventListeners() {
         formRegister.classList.add('active'); formLogin.classList.remove('active');
     });
 
-    // REGISTRO CON CÁLCULO AUTOMÁTICO DE EDAD
+    // REGISTRO
     formRegister.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('regUser').value.trim();
@@ -1068,7 +1034,6 @@ function setupEventListeners() {
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${name}`;
 
         const ageInfo = calculateAgeInfo(birthdate);
-
         const newUserRef = usersRef.push();
         const userData = {
             userId: newUserRef.key,
@@ -1092,7 +1057,7 @@ function setupEventListeners() {
                 document.getElementById('authModal').classList.remove('active');
                 
                 const statusMessage = ageInfo.isAdult ? "Mayor de 18 años" : "Menor de 18 años";
-                alert(`¡Cuenta registrada con éxito!\nEdad detectada: ${ageInfo.age} años (${statusMessage})`);
+                alert(`¡Cuenta registrada!\nEdad: ${ageInfo.age} años (${statusMessage})`);
             }
         });
     });
@@ -1116,29 +1081,25 @@ function setupEventListeners() {
                     updateFirebasePresence();
                     renderGames(loadedGames);
                     document.getElementById('authModal').classList.remove('active');
-                    alert(`¡Bienvenido de nuevo, ${currentUser.name}!`);
                 } else {
                     alert("Contraseña incorrecta.");
                 }
             } else {
-                alert("El correo no está registrado.");
+                alert("Correo no registrado.");
             }
         });
     });
 }
 
-// ACTUALIZAR INTERFAZ DE USUARIO
 function updateUserUI() {
     if (currentUser) {
         userBtnText.textContent = currentUser.name;
         userAvatarNav.src = currentUser.avatar;
         userAvatarNav.classList.remove('hidden');
 
-        if (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email)) {
-            btnAdminPanel.classList.remove('hidden');
-        } else {
-            btnAdminPanel.classList.add('hidden');
-        }
+        const isMod = currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email);
+        if (isMod) btnAdminPanel.classList.remove('hidden');
+        else btnAdminPanel.classList.add('hidden');
     } else {
         userBtnText.textContent = "Ingresar";
         userAvatarNav.classList.add('hidden');
