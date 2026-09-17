@@ -44,10 +44,10 @@ const defaultGames = [
     }
 ];
 
-const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro"];
+const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro", "Android APK"];
 
 const defaultNews = [
-    { id: "news-1", title: "Nuevos Ports Optimizados para PC", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en computadoras de gama baja y media sin tirones." },
+    { id: "news-1", title: "Nuevos Ports Optimizados para PC y Android", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en computadoras y móviles de gama baja y media sin tirones." },
     { id: "news-2", title: "Actualización de Servidores", date: "12 SEPT, 2026", content: "Todos los enlaces directos están migrando a servidores de alta velocidad (MediaFire / Directo)." },
     { id: "news-3", title: "Comunidad LOS BASADOS", date: "10 SEPT, 2026", content: "Usa nuestro nuevo Foro en Línea o únete al Discord oficial para pedir tus juegos favoritos." }
 ];
@@ -60,6 +60,7 @@ let loadedGenres = [];
 let loadedNews = [];
 let currentOnlineList = [];
 let myUserRef = null;
+let currentDeviceInfo = { type: 'pc', os: 'windows' };
 
 // VARIABLES DE COMENTARIOS Y ESTRELLAS
 let selectedRating = 5;
@@ -84,6 +85,63 @@ const userBtnText = document.getElementById('userBtnText');
 const userAvatarNav = document.getElementById('userAvatarNav');
 const btnAdminPanel = document.getElementById('btnAdminPanel');
 
+// DETECTOR AUTOMÁTICO DE DISPOSITIVOS Y SISTEMA OPERATIVO
+function detectDevice() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const width = window.innerWidth;
+    
+    let type = 'pc';
+    let os = 'unknown';
+    let iconClass = 'fa-desktop';
+    let textLabel = 'PC / Windows';
+
+    // Detección de OS
+    if (/android/i.test(ua)) {
+        os = 'android';
+    } else if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        os = 'ios';
+    } else if (/Win/i.test(ua)) {
+        os = 'windows';
+    } else if (/Mac/i.test(ua)) {
+        os = 'mac';
+    } else if (/Linux/i.test(ua)) {
+        os = 'linux';
+    }
+
+    // Detección de Tipo de Dispositivo (Móvil, Tablet o PC)
+    const isTabletUA = /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua);
+    
+    if (isTabletUA || (width >= 600 && width <= 1024 && ('ontouchstart' in window || navigator.maxTouchPoints > 0))) {
+        type = 'tablet';
+        iconClass = 'fa-tablet-alt';
+        textLabel = os === 'android' ? 'Tablet Android' : (os === 'ios' ? 'iPad OS' : 'Tablet');
+    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua) || width < 600) {
+        type = 'mobile';
+        iconClass = 'fa-mobile-alt';
+        textLabel = os === 'android' ? 'Android Mobile' : (os === 'ios' ? 'iPhone / iOS' : 'Smartphone');
+    } else {
+        type = 'pc';
+        iconClass = 'fa-desktop';
+        textLabel = os === 'windows' ? 'PC Windows' : 'Escritorio';
+    }
+
+    currentDeviceInfo = { type, os, label: textLabel, icon: iconClass };
+
+    // Aplicar Clases CSS al <body> para estilos adaptativos
+    document.body.classList.remove('device-pc', 'device-mobile', 'device-tablet', 'os-android', 'os-ios');
+    document.body.classList.add(`device-${type}`, `os-${os}`);
+
+    // Actualizar Badge Flotante en la Web
+    const deviceBadge = document.getElementById('deviceBadge');
+    const deviceIcon = document.getElementById('deviceIcon');
+    const deviceText = document.getElementById('deviceText');
+
+    if (deviceBadge && deviceIcon && deviceText) {
+        deviceIcon.className = `fas ${iconClass}`;
+        deviceText.textContent = textLabel;
+    }
+}
+
 // CALCULAR EDAD Y DETERMINAR SI ES MAYOR DE EDAD
 function calculateAgeInfo(birthdateString) {
     if (!birthdateString) return { age: 0, isAdult: false, label: "Edad no registrada" };
@@ -107,6 +165,8 @@ function calculateAgeInfo(birthdateString) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    detectDevice();
+    window.addEventListener('resize', detectDevice);
     updateUserUI();
     setupEventListeners();
     initRealtimeFirebase();
@@ -247,7 +307,8 @@ function updateFirebasePresence() {
     if (!myUserRef) return;
     const name = currentUser ? currentUser.name : "Invitado Basado";
     const avatar = currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest";
-    myUserRef.set({ name, avatar });
+    const devType = currentDeviceInfo.type.toUpperCase();
+    myUserRef.set({ name, avatar, device: devType });
 }
 
 function renderOnlineUsersSidebar() {
@@ -256,7 +317,8 @@ function renderOnlineUsersSidebar() {
     usersList.innerHTML = '';
     currentOnlineList.forEach(u => {
         const li = document.createElement('li');
-        li.innerHTML = `<img src="${u.avatar}" alt="${u.name}"> <span>${u.name}</span>`;
+        const devTag = u.device ? `<small style="font-size:0.7rem; color:#888;">[${u.device}]</small>` : '';
+        li.innerHTML = `<img src="${u.avatar}" alt="${u.name}"> <span>${u.name} ${devTag}</span>`;
         usersList.appendChild(li);
     });
 }
@@ -380,7 +442,7 @@ function renderGames(data) {
             overlayHTML = `
                 <div class="age-lock-overlay">
                     <i class="fas fa-user-lock"></i>
-                    <span class="badge-18">+18 ANOS</span>
+                    <span class="badge-18">+18 AÑOS</span>
                     <p>${currentUser ? 'Debes ser mayor de edad para ver este contenido.' : 'Inicia sesión y confirma tu edad para desbloquear.'}</p>
                 </div>
             `;
@@ -460,12 +522,12 @@ function openGameModal(id) {
         <p style="color:#ccc; margin-bottom: 15px;">${game.desc}</p>
         
         <div style="background:#0a0a0f; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <h4 style="color:var(--neon-red); margin-bottom: 8px;">Requisitos del Sistema:</h4>
+            <h4 style="color:var(--neon-red); margin-bottom: 8px;">Requisitos del Sistema / Dispositivo:</h4>
             <ul style="list-style: none; color: #aaa; font-size: 0.9rem;">
-                <li><strong>SO:</strong> ${game.specs ? game.specs.so : 'Windows'}</li>
-                <li><strong>Procesador:</strong> ${game.specs ? game.specs.cpu : 'Quad Core'}</li>
+                <li><strong>SO:</strong> ${game.specs ? game.specs.so : 'Windows / Android / iOS'}</li>
+                <li><strong>Procesador:</strong> ${game.specs ? game.specs.cpu : 'Quad Core / Octa-Core'}</li>
                 <li><strong>RAM:</strong> ${game.specs ? game.specs.ram : '4 GB'}</li>
-                <li><strong>Gráficos:</strong> ${game.specs ? game.specs.gpu : 'Integrados'}</li>
+                <li><strong>Gráficos:</strong> ${game.specs ? game.specs.gpu : 'Integrados / Mali / Adreno'}</li>
             </ul>
         </div>
 
