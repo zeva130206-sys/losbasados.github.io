@@ -24,7 +24,7 @@
     <nav class="navbar">
         <a href="#" class="logo">
             <img src="assets/img/favicon.png" alt="Logo Los Basados">
-            <span>LOS <span>BASADOS</span></span>
+            <span>LOS <span style="color: var(--neon-red);">BASADOS</span></span>
         </a>
         
         <div class="search-box">
@@ -63,20 +63,22 @@
             <!-- HERO SLIDER / BANNER NOVEDAD -->
             <section class="hero-banner" id="heroBanner">
                 <div class="hero-carousel" id="heroCarousel">
-                    <!-- Se cargará dinámicamente -->
+                    <!-- Cargado dinámicamente -->
                 </div>
             </section>
 
             <!-- CATEGORÍAS -->
-            <div class="categories-bar" id="categoriesBar">
-                <!-- Se cargará dinámicamente -->
+            <div class="categories-wrapper">
+                <div class="categories-bar" id="categoriesBar">
+                    <!-- Cargado dinámicamente -->
+                </div>
             </div>
 
             <!-- GRID DE JUEGOS -->
             <section class="games-section">
                 <h3 class="section-title">Catálogo Completo</h3>
                 <div class="games-grid" id="gamesGrid">
-                    <!-- Los juegos se cargan dinámicamente -->
+                    <!-- Juegos dinámicos -->
                 </div>
             </section>
         </main>
@@ -126,7 +128,7 @@
         <div class="modal-box admin-modal-box">
             <button class="modal-close" id="closeAdminModal">&times;</button>
             <h3 style="color:var(--neon-red); font-family:var(--font-head); margin-bottom:15px;">
-                <i class="fas fa-tools"></i> Panel de Moderador / Publicador
+                <i class="fas fa-tools"></i> Panel de Moderador
             </h3>
 
             <div class="admin-tabs">
@@ -135,6 +137,7 @@
                 <button class="tab-btn" id="tabAdminGenres" onclick="switchAdminTab('genres')">🏷️ Categorías</button>
             </div>
             
+            <!-- PESTAÑA 1: JUEGOS -->
             <div id="contentAdminGames" class="admin-tab-content active">
                 <form id="formAdminGame">
                     <input type="hidden" id="adminGameId">
@@ -151,24 +154,24 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Tamaño (GB / MB)</label>
+                            <label>Tamaño</label>
                             <input type="text" id="adminSize" placeholder="Ej: 4.5 GB" required>
                         </div>
                         <div class="form-group">
-                            <label>Servidor de Descarga</label>
-                            <input type="text" id="adminServer" placeholder="Ej: MediaFire / Google Drive" required>
+                            <label>Servidor</label>
+                            <input type="text" id="adminServer" placeholder="Ej: MediaFire" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Ruta de Imagen (Local o URL)</label>
-                            <input type="text" id="adminImage" placeholder="assets/img/juego.png o https://link.com/imagen.png" required>
+                            <label>Ruta de Imagen (URL / Local)</label>
+                            <input type="text" id="adminImage" placeholder="assets/img/juego.png" required>
                         </div>
                         <div class="form-group">
                             <label>Restricción de Edad</label>
                             <select id="adminAgeRestricted" class="custom-select" required>
-                                <option value="false">Para Todos (Apto para menores)</option>
+                                <option value="false">Para Todos</option>
                                 <option value="true">Solo Mayores de 18 Años (+18)</option>
                             </select>
                         </div>
@@ -176,42 +179,43 @@
 
                     <div class="form-group">
                         <label>Link Directo de Descarga</label>
-                        <input type="url" id="adminDownloadUrl" placeholder="https://ouo.io/ejemplo" required>
+                        <input type="url" id="adminDownloadUrl" placeholder="https://..." required>
                     </div>
 
                     <div class="form-group">
-                        <label>Descripción del Juego</label>
-                        <textarea id="adminDesc" rows="3" class="custom-textarea" placeholder="De qué trata el juego..." required></textarea>
+                        <label>Descripción</label>
+                        <textarea id="adminDesc" rows="3" class="custom-textarea" placeholder="De qué trata..." required></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="checkbox-label" style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#00ff80;">
-                            <input type="checkbox" id="adminFeatured" style="width:auto;"> 🌟 Mostrar en el Carrusel (Banner Destacado)
+                            <input type="checkbox" id="adminFeatured" style="width:auto;"> 🌟 Mostrar en Carrusel
                         </label>
                     </div>
 
                     <h4 style="color:#fff; margin: 15px 0 10px 0;">Requisitos del Sistema</h4>
                     <div class="form-row">
-                        <div class="form-group"><input type="text" id="adminSo" placeholder="SO: Win 10 / Android 10 / iOS 15"></div>
-                        <div class="form-group"><input type="text" id="adminCpu" placeholder="CPU: Octa-Core / Intel i3"></div>
+                        <div class="form-group"><input type="text" id="adminSo" placeholder="SO"></div>
+                        <div class="form-group"><input type="text" id="adminCpu" placeholder="CPU"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><input type="text" id="adminRam" placeholder="RAM: 4 GB / 8 GB RAM"></div>
-                        <div class="form-group"><input type="text" id="adminGpu" placeholder="GPU: Adreno 618 / GTX 750 Ti"></div>
+                        <div class="form-group"><input type="text" id="adminRam" placeholder="RAM"></div>
+                        <div class="form-group"><input type="text" id="adminGpu" placeholder="GPU"></div>
                     </div>
 
                     <div class="form-group">
-                        <label>Código Embed de Video / Tutorial</label>
-                        <textarea id="adminEmbed" rows="3" class="custom-textarea" placeholder='<iframe src="https://drive.google.com/file/d/..." width="640" height="360"></iframe>'></textarea>
+                        <label>Embed Tutorial / Demo</label>
+                        <textarea id="adminEmbed" rows="2" class="custom-textarea" placeholder='<iframe src="..."></iframe>'></textarea>
                     </div>
 
                     <div class="admin-actions">
-                        <button type="submit" class="btn-primary full-width" id="btnSaveAdminGame">PUBLICAR / GUARDAR CAMBIOS</button>
-                        <button type="button" class="btn-secondary full-width hidden" id="btnCancelEdit" style="background:#222; margin-top:8px;">CANCELAR EDICIÓN</button>
+                        <button type="submit" class="btn-primary full-width" id="btnSaveAdminGame">GUARDAR CAMBIOS</button>
+                        <button type="button" class="btn-secondary full-width hidden" id="btnCancelEdit" style="background:#222; margin-top:8px;">CANCELAR</button>
                     </div>
                 </form>
             </div>
 
+            <!-- PESTAÑA 2: NOTICIAS -->
             <div id="contentAdminNews" class="admin-tab-content hidden">
                 <form id="formAdminNews">
                     <input type="hidden" id="newsId">
@@ -225,7 +229,7 @@
                     </div>
                     <div class="form-group">
                         <label>Contenido</label>
-                        <textarea id="newsContent" rows="3" class="custom-textarea" placeholder="Resumen o detalles..." required></textarea>
+                        <textarea id="newsContent" rows="3" class="custom-textarea" required></textarea>
                     </div>
                     <button type="submit" class="btn-primary full-width" id="btnSaveNews">GUARDAR NOTICIA</button>
                     <button type="button" class="btn-secondary full-width hidden" id="btnCancelNewsEdit" style="background:#222; margin-top:8px;" onclick="resetNewsForm()">CANCELAR</button>
@@ -235,11 +239,12 @@
                 <div id="adminNewsList" class="admin-list-container"></div>
             </div>
 
+            <!-- PESTAÑA 3: CATEGORÍAS -->
             <div id="contentAdminGenres" class="admin-tab-content hidden">
                 <form id="formAdminGenre">
                     <div class="form-group">
                         <label>Nombre de la Categoría</label>
-                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG, Estrategia, APK" required>
+                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG" required>
                     </div>
                     <button type="submit" class="btn-primary full-width">AGREGAR CATEGORÍA</button>
                 </form>
@@ -251,7 +256,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE LOGIN / REGISTRO -->
+    <!-- MODAL LOGIN / REGISTRO -->
     <div class="modal-overlay" id="authModal">
         <div class="modal-box">
             <button class="modal-close" id="closeAuthModal">&times;</button>
@@ -274,7 +279,7 @@
 
             <form id="formRegister" class="auth-form">
                 <div class="form-group">
-                    <label>Nombre de Usuario (Apodo)</label>
+                    <label>Nombre de Usuario</label>
                     <input type="text" id="regUser" placeholder="Tu Nick / ESVA" required>
                 </div>
                 <div class="form-group">
@@ -294,7 +299,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE PERFIL DE USUARIO -->
+    <!-- MODAL PERFIL DE USUARIO -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-box">
             <button class="modal-close" id="closeProfileModal">&times;</button>
@@ -306,7 +311,7 @@
 
             <form id="formProfile">
                 <div class="form-group">
-                    <label>Cambiar Apodo / Nickname</label>
+                    <label>Cambiar Apodo</label>
                     <input type="text" id="profileNickname" placeholder="Tu nuevo apodo" required>
                 </div>
                 <div class="form-group">
@@ -320,10 +325,10 @@
                 </div>
                 <div class="form-group">
                     <label>URL de Imagen de Perfil</label>
-                    <input type="url" id="profileAvatarUrl" placeholder="https://imagen.com/foto.png">
+                    <input type="url" id="profileAvatarUrl" placeholder="https://...">
                 </div>
                 <div class="avatar-presets">
-                    <label>Elegir Avatar Gamer rápido:</label>
+                    <label>Elegir Avatar Rápido:</label>
                     <div class="preset-grid">
                         <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Cyber" onclick="selectPresetAvatar(this.src)">
                         <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Gamer" onclick="selectPresetAvatar(this.src)">
@@ -337,14 +342,14 @@
         </div>
     </div>
 
-    <!-- MODAL DE USUARIOS EN LÍNEA & FORO -->
+    <!-- MODAL FORO & CHAT -->
     <div class="modal-overlay" id="onlineModal">
         <div class="modal-box forum-modal-box">
             <button class="modal-close" id="closeOnlineModal">&times;</button>
             
             <div class="forum-header">
                 <h3><i class="fas fa-comments"></i> Comunidad & Foro <span>LOS BASADOS</span></h3>
-                <span class="online-indicator"><i class="fas fa-circle"></i> <span id="onlineCountModal">0</span> Basados Conectados</span>
+                <span class="online-indicator"><i class="fas fa-circle"></i> <span id="onlineCountModal">0</span> Conectados</span>
             </div>
 
             <div class="forum-layout">
@@ -357,7 +362,7 @@
                     <div class="chat-messages" id="chatMessages"></div>
 
                     <form id="formChat" class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Escribe un mensaje para la comunidad..." required>
+                        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." required>
                         <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
                     </form>
                 </div>
@@ -365,7 +370,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE NOTIFICACIONES -->
+    <!-- MODAL NOTIFICACIONES -->
     <div class="modal-overlay" id="notifModal">
         <div class="modal-box">
             <button class="modal-close" id="closeNotifModal">&times;</button>
@@ -387,7 +392,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-    <!-- Tu JavaScript principal -->
+    <!-- JavaScript Principal -->
     <script src="assets/js/main.js"></script>
 </body>
 </html>
