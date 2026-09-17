@@ -76,8 +76,30 @@
             </section>
         </main>
 
-        <!-- SIDEBAR DE NOTICIAS -->
+        <!-- SIDEBAR DE NOTICIAS Y STREAM -->
         <aside class="news-sidebar">
+            
+            <!-- SECCIÓN STREAM EN VIVO TWITCH -->
+            <div class="twitch-widget">
+                <div class="twitch-header">
+                    <h3 class="twitch-title"><i class="fab fa-twitch"></i> STREAM EN VIVO</h3>
+                    <span class="twitch-live-tag"><i class="fas fa-broadcast-tower"></i> VAZE_z06</span>
+                </div>
+                <div class="twitch-player-container">
+                    <!-- Embed de Twitch cargado para el canal VAZE_z06 -->
+                    <iframe 
+                        src="https://player.twitch.tv/?channel=vaze_z06&parent=localhost&parent=127.0.0.1&muted=true" 
+                        height="100%" 
+                        width="100%" 
+                        allowfullscreen="true">
+                    </iframe>
+                </div>
+                <a href="https://www.twitch.tv/vaze_z06" target="_blank" class="twitch-channel-btn">
+                    <i class="fab fa-twitch"></i> IR AL CANAL DE TWITCH
+                </a>
+            </div>
+
+            <!-- NOTICIAS GAMING -->
             <div class="news-header">
                 <h3 class="news-title"><i class="fas fa-newspaper"></i> Noticias Gaming</h3>
             </div>
