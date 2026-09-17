@@ -144,21 +144,21 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Título del Juego</label>
-                            <input type="text" id="adminTitle" placeholder="Ej: Left 4 Dead 2" required>
+                            <input type="text" id="adminTitle" placeholder="Ej: Blur / Minecraft" required>
                         </div>
                         <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="adminCategory" class="custom-select" required></select>
+                            <label>Géneros / Categorías <small style="color:#aaa;">(Ctrl + clic para varios)</small></label>
+                            <select id="adminCategory" class="custom-select" multiple size="4" required></select>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Tamaño</label>
+                            <label>Tamaño General</label>
                             <input type="text" id="adminSize" placeholder="Ej: 4.5 GB" required>
                         </div>
                         <div class="form-group">
-                            <label>Servidor</label>
+                            <label>Servidor Principal</label>
                             <input type="text" id="adminServer" placeholder="Ej: MediaFire" required>
                         </div>
                     </div>
@@ -177,9 +177,21 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Link Directo de Descarga</label>
-                        <input type="url" id="adminDownloadUrl" placeholder="https://..." required>
+                    <!-- SECCIÓN DE GESTIÓN DE VERSIONES DEL JUEGO -->
+                    <div class="versions-section-container">
+                        <div class="versions-header">
+                            <h4 style="color:var(--neon-red);"><i class="fas fa-code-branch"></i> Versiones del Juego</h4>
+                            <button type="button" class="btn-secondary btn-sm" id="btnAddVersionField">
+                                <i class="fas fa-plus-circle"></i> Agregar Versión
+                            </button>
+                        </div>
+                        <p style="font-size:0.75rem; color:#aaa; margin-bottom:10px;">
+                            Agrega las diferentes versiones (ej: v1.0, v1.16.5, Remastered, Port PC) con sus respectivos links de descarga.
+                        </p>
+                        
+                        <div id="versionsListContainer" class="versions-list-container">
+                            <!-- Filas dinámicas de versiones -->
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -244,7 +256,7 @@
                 <form id="formAdminGenre">
                     <div class="form-group">
                         <label>Nombre de la Categoría</label>
-                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG" required>
+                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG, Pantalla Compartida" required>
                     </div>
                     <button type="submit" class="btn-primary full-width">AGREGAR CATEGORÍA</button>
                 </form>
