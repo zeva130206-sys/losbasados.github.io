@@ -27,6 +27,27 @@ body {
     overflow-x: hidden;
 }
 
+/* BADGE FLOTANTE DE DETECCIÓN DE DISPOSITIVO */
+.device-badge {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    background: rgba(10, 10, 15, 0.85);
+    border: 1px solid var(--neon-red);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    z-index: 999;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 10px var(--neon-red-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
 /* NAVBAR */
 .navbar {
     display: flex;
@@ -183,7 +204,7 @@ body {
     display: none !important;
 }
 
-/* LAYOUT */
+/* LAYOUT PRINCIPAL */
 .main-layout {
     display: grid;
     grid-template-columns: 1fr 320px;
@@ -267,6 +288,7 @@ body {
     gap: 10px;
     margin-bottom: 25px;
     overflow-x: auto;
+    padding-bottom: 5px;
 }
 
 .cat-btn {
@@ -524,7 +546,7 @@ body {
 .news-card h4 { font-size: 0.95rem; margin: 4px 0; }
 .news-card p { font-size: 0.85rem; color: var(--text-dim); }
 
-/* MODALES */
+/* MODALES GENERALES */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -744,13 +766,11 @@ body {
 .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-dim); }
 .form-group input { width: 100%; padding: 10px; background: #0a0a0f; border: 1px solid #222230; border-radius: 6px; color: #fff; outline: none; }
 .form-group input:focus { border-color: var(--neon-red); }
-.form-group input[type="date"] {
-    color-scheme: dark;
-}
+.form-group input[type="date"] { color-scheme: dark; }
 
 .full-width { width: 100%; justify-content: center; }
 
-/* --- VISTA PREVIA Y TAMAÑO DE IMÁGENES EN EL CHAT --- */
+/* VISTA PREVIA DE IMÁGENES EN EL CHAT */
 .chat-msg-img {
     max-width: 220px;
     max-height: 180px;
@@ -770,41 +790,30 @@ body {
     border-color: var(--neon-red);
 }
 
-/* Modal Lightbox para ver la imagen completa */
 .image-lightbox {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
     z-index: 9999;
-    opacity: 0;
-    pointer-events: none;
+    opacity: 0; pointer-events: none;
     transition: opacity 0.25s ease;
 }
 
 .image-lightbox.active {
-    opacity: 1;
-    pointer-events: auto;
+    opacity: 1; pointer-events: auto;
 }
 
 .image-lightbox-content {
     position: relative;
-    max-width: 85vw;
-    max-height: 85vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    max-width: 85vw; max-height: 85vh;
+    display: flex; justify-content: center; align-items: center;
 }
 
 .image-lightbox-content img {
-    max-width: 100%;
-    max-height: 85vh;
+    max-width: 100%; max-height: 85vh;
     border-radius: 10px;
     border: 2px solid var(--neon-red);
     box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
@@ -813,28 +822,16 @@ body {
 
 .image-lightbox-close {
     position: absolute;
-    top: -15px;
-    right: -15px;
-    background: var(--neon-red);
-    color: #fff;
-    border: none;
-    font-size: 1.2rem;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: -15px; right: -15px;
+    background: var(--neon-red); color: #fff;
+    border: none; font-size: 1.2rem;
+    width: 35px; height: 35px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transition: transform 0.2s;
 }
 
-.image-lightbox-close:hover {
-    transform: scale(1.1);
-}
-
-/* --- SECCIÓN DE CALIFICACIÓN Y COMENTARIOS POR JUEGO --- */
+/* SECCIÓN DE CALIFICACIÓN Y COMENTARIOS */
 .game-comments-section {
     margin-top: 25px;
     padding-top: 20px;
@@ -846,9 +843,7 @@ body {
     font-size: 1.2rem;
     color: #fff;
     margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; gap: 8px;
 }
 
 .rating-overview {
@@ -856,129 +851,202 @@ body {
     border: 1px solid #1f1f2a;
     border-radius: 8px;
     padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 15px;
 }
 
 .star-rating-select {
-    display: flex;
-    gap: 5px;
-    font-size: 1.4rem;
-    cursor: pointer;
+    display: flex; gap: 5px; font-size: 1.4rem; cursor: pointer;
 }
 
 .star-rating-select i {
-    color: #444;
-    transition: color 0.2s ease, transform 0.2s ease;
+    color: #444; transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .star-rating-select i.active,
 .star-rating-select i:hover {
-    color: #ffca28;
-    transform: scale(1.1);
+    color: #ffca28; transform: scale(1.1);
 }
 
 .comment-input-box {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-    background: #09090e;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #1f1f2a;
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 20px; background: #09090e; padding: 15px;
+    border-radius: 8px; border: 1px solid #1f1f2a;
 }
 
 .comment-input-box textarea {
-    width: 100%;
-    background: #14141d;
-    border: 1px solid #282836;
-    border-radius: 6px;
-    padding: 10px;
-    color: #fff;
-    outline: none;
-    resize: vertical;
-    min-height: 70px;
-}
-
-.comment-input-box textarea:focus {
-    border-color: var(--neon-red);
+    width: 100%; background: #14141d; border: 1px solid #282836;
+    border-radius: 6px; padding: 10px; color: #fff; outline: none;
+    resize: vertical; min-height: 70px;
 }
 
 .comments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 280px;
-    overflow-y: auto;
-    padding-right: 5px;
+    display: flex; flex-direction: column; gap: 12px;
+    max-height: 280px; overflow-y: auto; padding-right: 5px;
 }
 
 .comment-item {
-    background: #09090e;
-    border: 1px solid #1f1f2a;
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
+    display: flex; gap: 12px; background: #0a0a0f;
+    padding: 10px 12px; border-radius: 8px; border: 1px solid #1a1a26;
 }
 
-.comment-item img {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
+.comment-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.comment-main { flex: 1; }
+.comment-header { display: flex; justify-content: space-between; align-items: center; }
+.comment-author { font-size: 0.85rem; font-weight: 700; color: var(--neon-red); }
+.comment-date { font-size: 0.7rem; color: #666; }
+.comment-stars { color: #ffca28; font-size: 0.8rem; margin: 2px 0 4px 0; }
+.comment-text { font-size: 0.85rem; color: #ccc; word-break: break-word; }
+
+
+/* ==========================================================================
+   📱 📲 REGLAS RESPONSIVE Y ADAPTATIVAS (TABLET, ANDROID, IOS, SMARTPHONES)
+   ========================================================================== */
+
+/* TABLETS Y PANTALLAS MEDIANAS (hasta 1024px) */
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+        padding: 0 20px;
+        margin: 20px auto;
+    }
+
+    .hero-banner {
+        height: 300px;
+    }
+
+    .hero-banner h2 {
+        font-size: 1.8rem;
+    }
+
+    .games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .card-img-wrap {
+        height: 220px;
+    }
+
+    .forum-layout {
+        grid-template-columns: 160px 1fr;
+    }
 }
 
-.comment-main {
-    flex: 1;
+/* SMARTPHONES Y DISPOSITIVOS MÓVILES (ANDROID / IOS - hasta 768px) */
+@media (max-width: 768px) {
+    .navbar {
+        flex-wrap: wrap;
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .logo {
+        font-size: 1.3rem;
+    }
+
+    .search-box {
+        order: 3;
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    .nav-actions {
+        gap: 8px;
+    }
+
+    .auth-btn span {
+        display: none;
+    }
+
+    .auth-btn {
+        padding: 8px;
+    }
+
+    .hero-banner {
+        height: 260px;
+    }
+
+    .carousel-slide {
+        padding: 20px;
+    }
+
+    .hero-banner h2 {
+        font-size: 1.4rem;
+        margin: 8px 0;
+    }
+
+    .hero-banner p {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .card-img-wrap {
+        height: 180px;
+    }
+
+    .card-info {
+        padding: 10px;
+    }
+
+    .card-info h4 {
+        font-size: 0.95rem;
+    }
+
+    .card-meta {
+        font-size: 0.75rem;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .modal-box {
+        padding: 20px 15px;
+        width: 95%;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .forum-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .online-users-sidebar {
+        max-height: 100px;
+    }
+
+    .chat-container {
+        height: 350px;
+    }
 }
 
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-}
+/* SMARTPHONES PEQUEÑOS (hasta 480px) */
+@media (max-width: 480px) {
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
 
-.comment-author {
-    font-weight: 700;
-    color: var(--neon-red);
-    font-size: 0.9rem;
-}
+    .card-img-wrap {
+        height: 230px;
+    }
 
-.comment-date {
-    font-size: 0.75rem;
-    color: #666;
-}
-
-.comment-stars {
-    color: #ffca28;
-    font-size: 0.8rem;
-    margin-bottom: 4px;
-}
-
-.comment-text {
-    font-size: 0.9rem;
-    color: #ddd;
-    word-break: break-word;
-}
-
-.login-to-comment-box {
-    background: #09090e;
-    border: 1px dashed var(--neon-red);
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.login-to-comment-box p {
-    color: #aaa;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
+    .device-badge {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+        bottom: 10px;
+        left: 10px;
+    }
 }
