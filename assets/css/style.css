@@ -4,6 +4,8 @@
     --bg-glass: rgba(18, 18, 26, 0.85);
     --neon-red: #ff003c;
     --neon-red-glow: rgba(255, 0, 60, 0.4);
+    --twitch-purple: #9146ff;
+    --twitch-glow: rgba(145, 70, 255, 0.4);
     --text-white: #ffffff;
     --text-dim: #9a9ab0;
     --border-color: rgba(255, 0, 60, 0.2);
@@ -184,7 +186,7 @@ body {
 /* LAYOUT */
 .main-layout {
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr 320px;
     gap: 30px;
     max-width: 1400px;
     margin: 30px auto;
@@ -425,13 +427,74 @@ body {
     vertical-align: middle;
 }
 
-/* SIDEBAR NOTICIAS */
+/* SIDEBAR NOTICIAS & TWITCH */
 .news-sidebar {
     background: var(--bg-card);
     border: 1px solid #1f1f2e;
     border-radius: 12px;
     padding: 20px;
     height: fit-content;
+}
+
+/* ESTILOS WIDGET DE TWITCH */
+.twitch-widget {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #1f1f2e;
+}
+
+.twitch-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.twitch-title {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    color: var(--twitch-purple);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.twitch-live-tag {
+    font-size: 0.75rem;
+    color: #aaa;
+    font-weight: 700;
+}
+
+.twitch-player-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--twitch-purple);
+    box-shadow: 0 0 15px var(--twitch-glow);
+    background: #000;
+}
+
+.twitch-channel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    background: var(--twitch-purple);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 8px;
+    border-radius: 6px;
+    transition: 0.3s;
+    letter-spacing: 0.5px;
+}
+
+.twitch-channel-btn:hover {
+    background: #772ce8;
+    box-shadow: 0 0 15px var(--twitch-purple);
 }
 
 .news-header {
