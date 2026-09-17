@@ -110,7 +110,17 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserUI();
     setupEventListeners();
     initRealtimeFirebase();
+    updateTwitchEmbedParentDomain();
 });
+
+// ACTUALIZACIÓN DINÁMICA DEL DOMINIO PARA EL PLAYER DE TWITCH
+function updateTwitchEmbedParentDomain() {
+    const twitchIframe = document.querySelector('.twitch-player-container iframe');
+    if (twitchIframe) {
+        const currentHost = window.location.hostname || 'localhost';
+        twitchIframe.src = `https://player.twitch.tv/?channel=vaze_z06&parent=${currentHost}&parent=localhost&parent=127.0.0.1&muted=true`;
+    }
+}
 
 // ESCUCHAR DATOS EN TIEMPO REAL EN FIREBASE
 function initRealtimeFirebase() {
