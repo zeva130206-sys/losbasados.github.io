@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOS BASADOS | Comunidad & Juegos PC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LOS BASADOS | Comunidad & Juegos Multiplataforma</title>
     <!-- Favicon / Icono de la pestaña -->
     <link rel="icon" type="image/png" href="assets/img/favicon.png">
     <!-- FontAwesome icons -->
@@ -14,6 +14,11 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+
+    <!-- BADGE INDICADOR DE DISPOSITIVO (DETECTADO AUTOMÁTICAMENTE) -->
+    <div id="deviceBadge" class="device-badge" title="Dispositivo Detectado">
+        <i class="fas fa-desktop" id="deviceIcon"></i> <span id="deviceText">PC</span>
+    </div>
 
     <!-- NAV BAR -->
     <nav class="navbar">
@@ -195,12 +200,12 @@
                     <!-- REQUISITOS DEL SISTEMA -->
                     <h4 style="color:#fff; margin: 15px 0 10px 0;">Requisitos del Sistema</h4>
                     <div class="form-row">
-                        <div class="form-group"><input type="text" id="adminSo" placeholder="SO: Win 10 64-bit"></div>
-                        <div class="form-group"><input type="text" id="adminCpu" placeholder="CPU: Intel Core i3"></div>
+                        <div class="form-group"><input type="text" id="adminSo" placeholder="SO: Win 10 / Android 10 / iOS 15"></div>
+                        <div class="form-group"><input type="text" id="adminCpu" placeholder="CPU: Octa-Core / Intel i3"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><input type="text" id="adminRam" placeholder="RAM: 8 GB RAM"></div>
-                        <div class="form-group"><input type="text" id="adminGpu" placeholder="GPU: GTX 750 Ti"></div>
+                        <div class="form-group"><input type="text" id="adminRam" placeholder="RAM: 4 GB / 8 GB RAM"></div>
+                        <div class="form-group"><input type="text" id="adminGpu" placeholder="GPU: Adreno 618 / GTX 750 Ti"></div>
                     </div>
 
                     <!-- TUTORIAL EMBED HTML -->
@@ -245,7 +250,7 @@
                 <form id="formAdminGenre">
                     <div class="form-group">
                         <label>Nombre de la Categoría</label>
-                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG, Estrategia" required>
+                        <input type="text" id="genreName" placeholder="Ej: Terror, RPG, Estrategia, APK" required>
                     </div>
                     <button type="submit" class="btn-primary full-width">AGREGAR CATEGORÍA</button>
                 </form>
