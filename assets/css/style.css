@@ -13,6 +13,12 @@
     --font-body: 'Rajdhani', sans-serif;
 }
 
+html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -24,7 +30,6 @@ body {
     background-color: var(--bg-main);
     color: var(--text-white);
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
 /* BADGE FLOTANTE DE DETECCIÓN DE DISPOSITIVO */
@@ -61,6 +66,7 @@ body {
     top: 0;
     z-index: 100;
     gap: 15px;
+    width: 100%;
 }
 
 .logo {
@@ -73,6 +79,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .logo img {
@@ -88,7 +95,8 @@ body {
 
 .search-box {
     position: relative;
-    width: 350px;
+    width: 100%;
+    max-width: 350px;
 }
 
 .search-box input {
@@ -119,6 +127,7 @@ body {
     display: flex;
     gap: 12px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .icon-btn {
@@ -214,17 +223,22 @@ body {
     display: none !important;
 }
 
-/* LAYOUT PRINCIPAL RESPONSIVO */
+/* LAYOUT PRINCIPAL */
 .main-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 25px;
     max-width: 1400px;
     margin: 25px auto;
     padding: 0 25px;
+    width: 100%;
 }
 
-/* HERO BANNER & CARRUSEL SUAVE */
+.content {
+    min-width: 0;
+}
+
+/* HERO BANNER & CARRUSEL */
 .hero-banner {
     position: relative;
     overflow: hidden;
@@ -233,6 +247,7 @@ body {
     border: 1px solid var(--border-color);
     margin-bottom: 20px;
     background: #09090e;
+    width: 100%;
 }
 
 .hero-carousel {
@@ -283,6 +298,7 @@ body {
     font-family: var(--font-head);
     font-size: 2rem;
     margin: 12px 0 8px 0;
+    word-break: break-word;
 }
 
 .hero-banner p {
@@ -292,14 +308,29 @@ body {
     font-size: 1rem;
 }
 
-/* CATEGORIAS */
+/* CATEGORIAS SWIPEABLE */
+.categories-wrapper {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
 .categories-bar {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
     overflow-x: auto;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.categories-bar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.categories-bar::-webkit-scrollbar-thumb {
+    background: var(--neon-red);
+    border-radius: 4px;
 }
 
 .cat-btn {
@@ -312,6 +343,7 @@ body {
     font-weight: 600;
     transition: 0.3s;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .cat-btn.active, .cat-btn:hover {
@@ -321,7 +353,7 @@ body {
     box-shadow: 0 0 10px var(--neon-red-glow);
 }
 
-/* GAMES GRID AJUSTADO A DPI Y RESOLUCIONES */
+/* GAMES GRID AJUSTADO */
 .section-title {
     font-family: var(--font-head);
     margin-bottom: 15px;
@@ -330,8 +362,9 @@ body {
 
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
+    width: 100%;
 }
 
 .game-card {
@@ -344,6 +377,7 @@ body {
     cursor: pointer;
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .game-card:hover {
@@ -352,11 +386,10 @@ body {
     box-shadow: 0 8px 20px rgba(255, 0, 60, 0.25);
 }
 
-/* CONTENEDOR DE IMAGEN CON ASPECT RATIO Y OBJETO ROBUSTO */
+/* CONTENEDOR DE IMAGEN CON ASPECT RATIO ROBUSTO */
 .card-img-wrap {
     width: 100%;
     aspect-ratio: 16 / 9;
-    min-height: 140px;
     position: relative;
     overflow: hidden;
     background: #08080c;
@@ -400,7 +433,12 @@ body {
 }
 
 .card-cat { font-size: 0.75rem; color: var(--neon-red); font-weight: 700; text-transform: uppercase; }
-.card-info h4 { font-size: 1rem; margin: 4px 0 8px 0; line-height: 1.25; }
+.card-info h4 { 
+    font-size: 0.95rem; 
+    margin: 4px 0 8px 0; 
+    line-height: 1.25; 
+    word-break: break-word;
+}
 .card-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); }
 
 /* RESTRICCIÓN DE EDAD (+18) */
@@ -426,7 +464,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(10, 10, 15, 0.8);
+    background: rgba(10, 10, 15, 0.85);
     color: #fff;
     text-align: center;
     padding: 10px;
@@ -434,7 +472,7 @@ body {
 }
 
 .age-lock-overlay i {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: var(--neon-red);
     margin-bottom: 4px;
 }
@@ -444,15 +482,16 @@ body {
     color: #fff;
     font-family: var(--font-head);
     font-weight: 900;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding: 2px 6px;
     border-radius: 4px;
     margin-bottom: 4px;
 }
 
 .age-lock-overlay p {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #ccc;
+    line-height: 1.1;
 }
 
 .badge-18-tag {
@@ -472,12 +511,15 @@ body {
     border-radius: 12px;
     padding: 18px;
     height: fit-content;
+    width: 100%;
+    min-width: 0;
 }
 
 .twitch-widget {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #1f1f2e;
+    width: 100%;
 }
 
 .twitch-header {
@@ -510,9 +552,13 @@ body {
     border: 1px solid var(--twitch-purple);
     box-shadow: 0 0 12px var(--twitch-glow);
     background: #000;
+    position: relative;
 }
 
 .twitch-player-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border: 0;
@@ -558,13 +604,13 @@ body {
 }
 
 .news-date { font-size: 0.7rem; color: var(--neon-red); font-weight: 700; }
-.news-card h4 { font-size: 0.9rem; margin: 2px 0 4px 0; }
-.news-card p { font-size: 0.8rem; color: var(--text-dim); }
+.news-card h4 { font-size: 0.9rem; margin: 2px 0 4px 0; word-break: break-word; }
+.news-card p { font-size: 0.8rem; color: var(--text-dim); word-break: break-word; }
 
-/* MODALES GENERALES RESPONSIVOS */
+/* MODALES GENERALES */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(5px);
     display: flex;
@@ -617,6 +663,7 @@ body {
     margin-bottom: 18px;
     border-bottom: 1px solid #222230;
     padding-bottom: 8px;
+    overflow-x: auto;
 }
 
 .tab-btn {
@@ -628,6 +675,7 @@ body {
     cursor: pointer;
     font-weight: 700;
     font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -678,7 +726,7 @@ body {
     cursor: pointer;
 }
 
-/* FORMULARIO ADMIN / MODERADOR */
+/* FORMULARIO ADMIN */
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -704,6 +752,7 @@ body {
     border-radius: 8px;
     border: 1px solid #282836;
     margin-top: 12px;
+    width: 100%;
 }
 
 .embed-video-container iframe {
@@ -774,7 +823,7 @@ body {
 
 .full-width { width: 100%; justify-content: center; }
 
-/* LIGHTBOX DE IMÁGENES EN CHAT */
+/* LIGHTBOX */
 .chat-msg-img {
     max-width: 180px;
     max-height: 140px;
@@ -838,11 +887,11 @@ body {
 .comment-author { font-size: 0.8rem; font-weight: 700; color: var(--neon-red); }
 .comment-date { font-size: 0.68rem; color: #666; }
 .comment-stars { color: #ffca28; font-size: 0.75rem; }
-.comment-text { font-size: 0.8rem; color: #ccc; }
+.comment-text { font-size: 0.8rem; color: #ccc; word-break: break-word; }
 
 
 /* ==========================================================================
-   📱 📲 REGLAS MEDIA QUERIES ADAPTATIVAS REVISADAS (TABLETS, MÓVILES, DPI)
+   📱 MEDIA QUERIES ADAPTATIVAS (CORREGIDAS)
    ========================================================================== */
 
 /* TABLETS Y PANTALLAS MEDIANAS (hasta 1024px) */
@@ -862,12 +911,8 @@ body {
     }
 
     .games-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 15px;
-    }
-
-    .card-img-wrap {
-        min-height: 120px;
     }
 
     .forum-layout {
@@ -875,7 +920,7 @@ body {
     }
 }
 
-/* SMARTPHONES Y DISPOSITIVOS MÓVILES (hasta 768px) */
+/* SMARTPHONES Y MÓVILES (hasta 768px) */
 @media (max-width: 768px) {
     .navbar {
         flex-wrap: wrap;
@@ -890,6 +935,7 @@ body {
     .search-box {
         order: 3;
         width: 100%;
+        max-width: 100%;
         margin-top: 2px;
     }
 
@@ -929,14 +975,10 @@ body {
         overflow: hidden;
     }
 
-    /* VISTA EN MÓVIL: 2 COLUMNAS PROPORCIONALES */
+    /* GRID MÓVIL EN 2 COLUMNAS COMPACTAS */
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-    }
-
-    .card-img-wrap {
-        min-height: 100px;
     }
 
     .card-info {
@@ -978,7 +1020,7 @@ body {
     }
 }
 
-/* PANALLAS MUY PEQUEÑAS (hasta 420px) */
+/* PANTALLAS PEQUEÑAS (hasta 420px) */
 @media (max-width: 420px) {
     .games-grid {
         grid-template-columns: repeat(2, 1fr);
