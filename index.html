@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOS BASADOS | Comunidad & Juegos Multiplataforma</title>
-    <!-- Favicon / Icono de la pestaña -->
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/img/favicon.png">
     <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    <!-- BADGE INDICADOR DE DISPOSITIVO (DETECTADO AUTOMÁTICAMENTE) -->
+    <!-- BADGE INDICADOR DE DISPOSITIVO -->
     <div id="deviceBadge" class="device-badge" title="Dispositivo Detectado">
         <i class="fas fa-desktop" id="deviceIcon"></i> <span id="deviceText">PC</span>
     </div>
@@ -33,6 +33,11 @@
         </div>
 
         <div class="nav-actions">
+            <!-- REPRODUCTOR MÚSICA BACKGROUND -->
+            <button class="icon-btn audio-toggle-btn" id="btnToggleAudio" title="Música / Sonido">
+                <i class="fas fa-music" id="audioIcon"></i>
+            </button>
+
             <!-- BOTÓN PANEL ADMIN / MODERADOR -->
             <button class="icon-btn admin-btn hidden" id="btnAdminPanel" title="Panel de Moderador">
                 <i class="fas fa-tools"></i>
@@ -67,11 +72,20 @@
                 </div>
             </section>
 
-            <!-- CATEGORÍAS Y SISTEMA DE FILTRADO -->
+            <!-- CATEGORÍAS Y SISTEMA DE FILTRADO Y ORDEN -->
             <div class="categories-wrapper">
                 <div class="categories-container">
                     <div class="categories-bar" id="categoriesBar">
-                        <!-- Cargado dinámicamente hasta RETRO -->
+                        <!-- Cargado dinámicamente -->
+                    </div>
+
+                    <!-- SELECTOR DE ORDEN -->
+                    <div class="sort-wrapper">
+                        <select id="sortSelect" class="custom-select-sm" onchange="applySorting()">
+                            <option value="recent"><i class="fas fa-clock"></i> Más Recientes</option>
+                            <option value="downloads">🔥 Más Descargados</option>
+                            <option value="rating">⭐ Mejor Calificados</option>
+                        </select>
                     </div>
 
                     <!-- BOTÓN DE DESPLEGABLE DE FILTROS -->
@@ -106,7 +120,6 @@
                                 <label><i class="fas fa-tags"></i> Género Específico:</label>
                                 <select id="filterGenreExtra" class="custom-select-sm">
                                     <option value="all">Todos los géneros</option>
-                                    <!-- Cargado dinámicamente -->
                                 </select>
                             </div>
 
@@ -128,9 +141,19 @@
             </section>
         </main>
 
-        <!-- SIDEBAR DE NOTICIAS Y STREAM -->
+        <!-- SIDEBAR DE NOTICIAS, COMUNIDAD Y STREAM -->
         <aside class="news-sidebar">
             
+            <!-- BANNERS COMUNIDAD & REDES -->
+            <div class="community-banner-box">
+                <h4><i class="fas fa-users"></i> ÚNETE A LA COMUNIDAD</h4>
+                <div class="social-links-grid">
+                    <a href="https://discord.gg" target="_blank" class="social-btn discord-btn"><i class="fab fa-discord"></i> Discord</a>
+                    <a href="https://t.me" target="_blank" class="social-btn telegram-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                    <a href="https://youtube.com" target="_blank" class="social-btn youtube-btn"><i class="fab fa-youtube"></i> YouTube</a>
+                </div>
+            </div>
+
             <!-- SECCIÓN STREAM EN VIVO TWITCH -->
             <div class="twitch-widget">
                 <div class="twitch-header">
@@ -150,7 +173,7 @@
 
             <!-- NOTICIAS GAMING -->
             <div class="news-header">
-                <h3 class="news-title"><i class="fas fa-newspaper"></i> Noticias Gaming</h3>
+                <h3 class="news-title"><i class="fas fa-newspaper"></i> Noticias & Updates</h3>
             </div>
             <div id="newsContainer">
                 <!-- Noticias dinámicas -->
@@ -168,6 +191,21 @@
         </div>
     </div>
 
+    <!-- MODAL PERFIL PÚBLICO -->
+    <div class="modal-overlay" id="publicProfileModal">
+        <div class="modal-box text-center">
+            <button class="modal-close" id="closePublicProfileModal">&times;</button>
+            <div class="profile-preview-box">
+                <img id="publicAvatarImg" src="" alt="Avatar">
+            </div>
+            <h3 id="publicName" style="color: var(--neon-red); font-family: var(--font-head); margin-bottom: 5px;">-</h3>
+            <p id="publicRole" style="color: #00ff80; font-weight: bold; font-size: 0.85rem; margin-bottom: 15px;">Miembro Basado</p>
+            <div style="background:#09090e; padding:12px; border-radius:8px; border:1px solid #1f1f2e;">
+                <p style="font-size:0.85rem; color:#aaa;">Registrado en la comunidad de LOS BASADOS.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PANEL DE MODERADOR -->
     <div class="modal-overlay" id="adminModal">
         <div class="modal-box admin-modal-box">
@@ -179,11 +217,17 @@
             <div class="admin-tabs">
                 <button class="tab-btn active" id="tabAdminGames" onclick="switchAdminTab('games')">🎮 Juegos</button>
                 <button class="tab-btn" id="tabAdminNews" onclick="switchAdminTab('news')">📰 Noticias</button>
-                <button class="tab-btn" id="tabAdminGenres" onclick="switchAdminTab('genres')">🏷️ Categorías & Filtros</button>
+                <button class="tab-btn" id="tabAdminGenres" onclick="switchAdminTab('genres')">🏷️ Categorías</button>
+                <button class="tab-btn" id="tabAdminReports" onclick="switchAdminTab('reports')">⚠️ Reportes (<span id="reportsBadgeCount">0</span>)</button>
             </div>
             
             <!-- PESTAÑA 1: JUEGOS -->
             <div id="contentAdminGames" class="admin-tab-content active">
+                <div class="search-box" style="margin-bottom: 15px; max-width: 100%;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="adminGameSearchInput" placeholder="Buscar juego en el panel para editar..." oninput="filterAdminGamesList()">
+                </div>
+
                 <form id="formAdminGame">
                     <input type="hidden" id="adminGameId">
                     <div class="form-row">
@@ -222,7 +266,24 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN DE GESTIÓN DE VERSIONES DEL JUEGO -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Estado Online / Multiplayer</label>
+                            <select id="adminOnlineStatus" class="custom-select">
+                                <option value="online">🟢 Online / Multiplayer Funcional</option>
+                                <option value="offline">🔴 Solo Modo Offline / Singleplayer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Soporte de Mando / Gamepad</label>
+                            <select id="adminGamepadStatus" class="custom-select">
+                                <option value="true">🎮 Compatible con Mando / Gamepad</option>
+                                <option value="false">⌨️ Teclado y Ratón / Touch</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- GESTIÓN DE VERSIONES -->
                     <div class="versions-section-container">
                         <div class="versions-header">
                             <h4 style="color:var(--neon-red);"><i class="fas fa-code-branch"></i> Versiones del Juego</h4>
@@ -230,12 +291,9 @@
                                 <i class="fas fa-plus-circle"></i> Agregar Versión
                             </button>
                         </div>
-                        <p style="font-size:0.75rem; color:#aaa; margin-bottom:10px;">
-                            Agrega las diferentes versiones (ej: Versión Portable, v1.16.5, Remastered) con sus respectivos enlaces.
-                        </p>
                         
                         <div id="versionsListContainer" class="versions-list-container">
-                            <!-- Filas dinámicas de versiones -->
+                            <!-- Filas dinámicas -->
                         </div>
                     </div>
 
@@ -270,6 +328,9 @@
                         <button type="button" class="btn-secondary full-width hidden" id="btnCancelEdit" style="background:#222; margin-top:8px;">CANCELAR</button>
                     </div>
                 </form>
+
+                <h4 style="color:#fff; margin:20px 0 10px 0;">Lista de Juegos en Base de Datos:</h4>
+                <div id="adminGamesListContainer" class="admin-list-container"></div>
             </div>
 
             <!-- PESTAÑA 2: NOTICIAS -->
@@ -277,8 +338,8 @@
                 <form id="formAdminNews">
                     <input type="hidden" id="newsId">
                     <div class="form-group">
-                        <label>Título de la Noticia</label>
-                        <input type="text" id="newsTitle" placeholder="Ej: Nuevos Ports Optimizados" required>
+                        <label>Título de la Noticia / Update</label>
+                        <input type="text" id="newsTitle" placeholder="Ej: Changelog v2.1 de la Web" required>
                     </div>
                     <div class="form-group">
                         <label>Fecha</label>
@@ -296,18 +357,24 @@
                 <div id="adminNewsList" class="admin-list-container"></div>
             </div>
 
-            <!-- PESTAÑA 3: CATEGORÍAS Y PLATAFORMAS -->
+            <!-- PESTAÑA 3: CATEGORÍAS -->
             <div id="contentAdminGenres" class="admin-tab-content hidden">
                 <form id="formAdminGenre">
                     <div class="form-group">
-                        <label>Nombre de la Categoría / Plataforma</label>
+                        <label>Nombre de la Categoría</label>
                         <input type="text" id="genreName" placeholder="Ej: Terror, Android, Windows, ISO, PSP" required>
                     </div>
-                    <button type="submit" class="btn-primary full-width">AGREGAR CATEGORÍA / FILTRO</button>
+                    <button type="submit" class="btn-primary full-width">AGREGAR CATEGORÍA</button>
                 </form>
 
-                <h4 style="color:#fff; margin:20px 0 10px 0;">Categorías & Filtros Editables:</h4>
+                <h4 style="color:#fff; margin:20px 0 10px 0;">Categorías Editables:</h4>
                 <div id="adminGenreList" class="genre-tags-list"></div>
+            </div>
+
+            <!-- PESTAÑA 4: REPORTES DE ENLACES -->
+            <div id="contentAdminReports" class="admin-tab-content hidden">
+                <h4 style="color:#fff; margin-bottom:12px;">Enlaces Caídos Reportados por Usuarios:</h4>
+                <div id="adminReportsList" class="admin-list-container"></div>
             </div>
 
         </div>
@@ -374,7 +441,6 @@
                 <div class="form-group">
                     <label>Fecha de Nacimiento</label>
                     <input type="date" id="profileBirthdate" required>
-                    <small id="birthdateNotice" style="color: #ff003c; font-size: 0.75rem; display: block; margin-top: 4px;"></small>
                 </div>
                 <div class="form-group">
                     <label>Estado de Edad</label>
@@ -403,17 +469,22 @@
         </div>
     </div>
 
-    <!-- MODAL FORO & CHAT -->
+    <!-- MODAL FORO & CHAT CON PESTAÑAS (CHAT Y SOLICITUDES) -->
     <div class="modal-overlay" id="onlineModal">
         <div class="modal-box forum-modal-box">
             <button class="modal-close" id="closeOnlineModal">&times;</button>
             
             <div class="forum-header">
-                <h3><i class="fas fa-comments"></i> Comunidad & Foro <span>LOS BASADOS</span></h3>
+                <h3><i class="fas fa-comments"></i> Comunidad <span>LOS BASADOS</span></h3>
+                <div class="forum-tabs-btns">
+                    <button class="tab-btn active" id="btnTabChat" onclick="switchForumTab('chat')">💬 Chat General</button>
+                    <button class="tab-btn" id="btnTabRequests" onclick="switchForumTab('requests')">📌 Pedir Juego</button>
+                </div>
                 <span class="online-indicator"><i class="fas fa-circle"></i> <span id="onlineCountModal">0</span> Conectados</span>
             </div>
 
-            <div class="forum-layout">
+            <!-- CONTENIDO PESTAÑA CHAT -->
+            <div id="forumChatContent" class="forum-layout">
                 <div class="online-users-sidebar">
                     <h4>Conectados</h4>
                     <ul class="users-list" id="onlineUsersList"></ul>
@@ -428,6 +499,26 @@
                     </form>
                 </div>
             </div>
+
+            <!-- CONTENIDO PESTAÑA SOLICITUDES DE JUEGOS -->
+            <div id="forumRequestsContent" class="requests-layout hidden">
+                <form id="formGameRequest" class="request-form">
+                    <h4><i class="fas fa-plus-circle"></i> Solicitar un Juego / Port Nuevo</h4>
+                    <div class="form-row">
+                        <input type="text" id="reqGameTitle" placeholder="Nombre del Juego (Ej: GTA Vice City Port)" required>
+                        <select id="reqPlatform" class="custom-select-sm">
+                            <option value="PC Windows">PC Windows</option>
+                            <option value="Android Mobile">Android Mobile</option>
+                            <option value="ISO / ROM">ISO / ROM</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary btn-sm" style="margin-top:8px;">PUBLICAR SOLICITUD</button>
+                </form>
+
+                <h4 style="margin: 15px 0 10px 0; color:#fff;">Peticiones de la Comunidad:</h4>
+                <div class="requests-list" id="requestsContainer"></div>
+            </div>
+
         </div>
     </div>
 
