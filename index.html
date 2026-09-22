@@ -381,7 +381,11 @@
                     <input type="text" id="profileAgeBadge" readonly style="background:#181824; color:var(--neon-red); font-weight:bold; cursor:not-allowed;">
                 </div>
                 <div class="form-group">
-                    <label>URL de Imagen de Perfil</label>
+                    <label><i class="fas fa-upload"></i> Subir Foto desde tu Dispositivo (Máx: 500 KB)</label>
+                    <input type="file" id="profileAvatarFile" accept="image/png, image/jpeg, image/webp" style="background:#181824; padding:6px; font-size:0.8rem;">
+                </div>
+                <div class="form-group">
+                    <label>O colocar URL de Imagen</label>
                     <input type="url" id="profileAvatarUrl" placeholder="https://...">
                 </div>
                 <div class="avatar-presets">
