@@ -1151,6 +1151,28 @@ function resetNewsForm() {
 
 // EVENTOS Y MODALES
 function setupEventListeners() {
+    // Previa de imagen local al seleccionar archivo en el perfil
+    const avatarFileInput = document.getElementById('profileAvatarFile');
+    if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validación de peso máximo: 500 KB = 500 * 1024 bytes
+            if (file.size > 500 * 1024) {
+                alert("⚠️ La imagen supera el peso máximo de 500 KB. Elige una foto más ligera.");
+                avatarFileInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('profileAvatarPreview').src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     // Auth Modal
     btnAuth.addEventListener('click', () => {
         if (currentUser) {
@@ -1258,25 +1280,45 @@ function setupEventListeners() {
         const newName = document.getElementById('profileNickname').value.trim();
         const newBirthdate = document.getElementById('profileBirthdate').value;
         const newAvatarUrl = document.getElementById('profileAvatarUrl').value.trim();
+        const fileInput = document.getElementById('profileAvatarFile');
 
         const ageInfo = calculateAgeInfo(newBirthdate);
-
         currentUser.name = newName;
         currentUser.birthdate = newBirthdate;
         currentUser.isAdult = ageInfo.isAdult;
-        if (newAvatarUrl) currentUser.avatar = newAvatarUrl;
 
-        usersRef.child(currentUser.id).update({
-            name: currentUser.name,
-            birthdate: currentUser.birthdate,
-            avatar: currentUser.avatar
-        });
+        const processSave = (finalAvatar) => {
+            if (finalAvatar) currentUser.avatar = finalAvatar;
 
-        localStorage.setItem('basados_user', JSON.stringify(currentUser));
-        updateUserUI();
-        updateFirebasePresence();
-        document.getElementById('profileModal').classList.remove('active');
-        renderGames(loadedGames);
+            usersRef.child(currentUser.id).update({
+                name: currentUser.name,
+                birthdate: currentUser.birthdate,
+                avatar: currentUser.avatar
+            });
+
+            localStorage.setItem('basados_user', JSON.stringify(currentUser));
+            updateUserUI();
+            updateFirebasePresence();
+            document.getElementById('profileModal').classList.remove('active');
+            renderGames(loadedGames);
+        };
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 500 * 1024) {
+                alert("⚠️ La imagen supera el peso máximo de 500 KB.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                processSave(evt.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else if (newAvatarUrl) {
+            processSave(newAvatarUrl);
+        } else {
+            processSave(null);
+        }
     });
 
     document.getElementById('btnLogout').addEventListener('click', () => {
@@ -1347,6 +1389,9 @@ function openProfileModal() {
     document.getElementById('profileBirthdate').value = currentUser.birthdate || '';
     document.getElementById('profileAvatarUrl').value = currentUser.avatar || '';
     document.getElementById('profileAvatarPreview').src = currentUser.avatar || '';
+    
+    const fileInput = document.getElementById('profileAvatarFile');
+    if (fileInput) fileInput.value = '';
 
     const ageInfo = calculateAgeInfo(currentUser.birthdate);
     document.getElementById('profileAgeBadge').value = ageInfo.label;
@@ -1357,6 +1402,8 @@ function openProfileModal() {
 window.selectPresetAvatar = function(url) {
     document.getElementById('profileAvatarUrl').value = url;
     document.getElementById('profileAvatarPreview').src = url;
+    const fileInput = document.getElementById('profileAvatarFile');
+    if (fileInput) fileInput.value = '';
 };
 
 function updateUserUI() {
