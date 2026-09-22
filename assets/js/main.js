@@ -20,9 +20,35 @@ const gamesRef = db.ref('games');
 const newsRef = db.ref('news');
 const genresRef = db.ref('genres');
 const commentsRef = db.ref('comments');
+const reportsRef = db.ref('reports');
+const requestsRef = db.ref('game_requests');
 
 // IMAGEN POR DEFECTO PARA FALLBACKS
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
+
+// AUDIO SYNTHWAVE / LO-FI DE FONDO
+const bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3');
+bgAudio.loop = true;
+bgAudio.volume = 0.2;
+let isAudioPlaying = false;
+
+// EFECTO DE SONIDO POP AL HACER CLICK
+function playClickSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
+}
 
 // DATOS BASE INICIALES
 const defaultGames = [
@@ -40,6 +66,9 @@ const defaultGames = [
         ],
         featured: true,
         ageRestricted: false,
+        onlineStatus: "online",
+        gamepadStatus: true,
+        downloadsCount: 154,
         specs: {
             so: "Windows 7 / 8 / 10 / 11 (64-bits)",
             cpu: "Intel Core i3 / AMD FX equivalente",
@@ -54,9 +83,8 @@ const defaultGames = [
 const defaultGenres = ["Carreras", "Acción", "Supervivencia", "Retro", "Android", "Windows", "ISO", "Pantalla Compartida"];
 
 const defaultNews = [
-    { id: "news-1", title: "Nuevos Ports Optimizados", date: "15 SEPT, 2026", content: "Optimizando los instaladores para que corran en PC y móviles de gama baja/media." },
-    { id: "news-2", title: "Actualización de Servidores", date: "12 SEPT, 2026", content: "Todos los enlaces directos están migrando a servidores de alta velocidad." },
-    { id: "news-3", title: "Comunidad LOS BASADOS", date: "10 SEPT, 2026", content: "Usa nuestro nuevo Foro en Línea o únete al Discord oficial." }
+    { id: "news-1", title: "Actualización v2.1 de LOS BASADOS", date: "15 SEPT, 2026", content: "Añadidos contadores de descargas, reporte de links caídos, filtros de mando/online y creador de peticiones." },
+    { id: "news-2", title: "Nuevos Ports Optimizados", date: "12 SEPT, 2026", content: "Optimizando los instaladores para que corran en PC y móviles de gama baja/media." }
 ];
 
 // ESTADO GLOBAL
@@ -65,6 +93,8 @@ let favorites = JSON.parse(localStorage.getItem('basados_favs')) || [];
 let loadedGames = [];
 let loadedGenres = [];
 let loadedNews = [];
+let loadedReports = [];
+let loadedRequests = [];
 let currentOnlineList = [];
 let myUserRef = null;
 let currentDeviceInfo = { type: 'pc', os: 'windows' };
@@ -183,7 +213,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initRealtimeFirebase();
     updateTwitchEmbedParentDomain();
     setupFilterToggle();
+    setupAudioToggle();
+
+    // Sonido al clickear cualquier botón
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('button, .cat-btn, .game-card, .social-btn')) {
+            playClickSound();
+        }
+    });
 });
+
+// REPRODUCTOR AUDIO
+function setupAudioToggle() {
+    const btnAudio = document.getElementById('btnToggleAudio');
+    if (!btnAudio) return;
+
+    btnAudio.addEventListener('click', () => {
+        if (isAudioPlaying) {
+            bgAudio.pause();
+            btnAudio.classList.remove('playing');
+            isAudioPlaying = false;
+        } else {
+            bgAudio.play().then(() => {
+                btnAudio.classList.add('playing');
+                isAudioPlaying = true;
+            }).catch(() => {});
+        }
+    });
+}
 
 // EMBED TWITCH DOMINIO
 function updateTwitchEmbedParentDomain() {
@@ -205,8 +262,9 @@ function initRealtimeFirebase() {
             defaultGames.forEach(g => gamesRef.child(g.id).set(g));
             loadedGames = defaultGames;
         }
-        renderGames(loadedGames);
+        applySorting();
         renderHeroCarousel(loadedGames);
+        renderAdminGamesList();
     });
 
     // 2. Categorías
@@ -236,7 +294,23 @@ function initRealtimeFirebase() {
         renderAdminNews();
     });
 
-    // 4. Chat
+    // 4. Reportes de Enlaces
+    reportsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        loadedReports = data ? Object.values(data) : [];
+        const badge = document.getElementById('reportsBadgeCount');
+        if (badge) badge.textContent = loadedReports.length;
+        renderAdminReports();
+    });
+
+    // 5. Peticiones de Juegos
+    requestsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        loadedRequests = data ? Object.values(data) : [];
+        renderGameRequests();
+    });
+
+    // 6. Chat
     messagesRef.limitToLast(50).on('value', (snapshot) => {
         const data = snapshot.val();
         const chatMessages = document.getElementById('chatMessages');
@@ -257,9 +331,9 @@ function initRealtimeFirebase() {
                 }
 
                 msgDiv.innerHTML = `
-                    <img src="${msg.avatar}" alt="${msg.author}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
+                    <img src="${msg.avatar}" alt="${msg.author}" onclick="openPublicProfile('${msg.author}', '${msg.avatar}')" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
                     <div class="chat-msg-content">
-                        <span class="chat-author">${msg.author}</span>
+                        <span class="chat-author" onclick="openPublicProfile('${msg.author}', '${msg.avatar}')">${msg.author}</span>
                         <p class="chat-text">${formattedText}</p>
                     </div>
                 `;
@@ -269,7 +343,7 @@ function initRealtimeFirebase() {
         }
     });
 
-    // 5. Presencia en Vivo
+    // 7. Presencia en Vivo
     myUserRef = onlineUsersRef.push();
     myUserRef.onDisconnect().remove();
     updateFirebasePresence();
@@ -283,6 +357,126 @@ function initRealtimeFirebase() {
         renderOnlineUsersSidebar();
     });
 }
+
+// PERFIL PÚBLICO
+window.openPublicProfile = function(name, avatar) {
+    document.getElementById('publicName').textContent = name;
+    document.getElementById('publicAvatarImg').src = avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=Guest';
+    document.getElementById('publicProfileModal').classList.add('active');
+};
+
+document.getElementById('closePublicProfileModal').addEventListener('click', () => {
+    document.getElementById('publicProfileModal').classList.remove('active');
+});
+
+// REPORTAR ENLACE CAÍDO
+window.reportGameLink = function(gameId, gameTitle) {
+    if (confirm(`¿Quieres reportar el enlace de "${gameTitle}" como caído o dañado?`)) {
+        reportsRef.push({
+            gameId,
+            gameTitle,
+            reportedBy: currentUser ? currentUser.name : "Invitado",
+            timestamp: Date.now()
+        }, (err) => {
+            if (!err) alert("✅ Gracias. El reporte ha sido enviado a los moderadores.");
+        });
+    }
+};
+
+function renderAdminReports() {
+    const container = document.getElementById('adminReportsList');
+    if (!container) return;
+    if (loadedReports.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; font-size:0.85rem;">No hay enlaces caídos reportados actualmente.</p>';
+        return;
+    }
+
+    container.innerHTML = loadedReports.map(r => `
+        <div class="admin-list-item">
+            <div>
+                <strong style="color:var(--neon-red);">${r.gameTitle}</strong>
+                <small style="color:#aaa; display:block;">Reportado por: ${r.reportedBy}</small>
+            </div>
+            <button class="btn-secondary btn-sm" onclick="openAdminEditModal(event, '${r.gameId}')">🔧 Resolver / Editar</button>
+        </div>
+    `).join('');
+}
+
+// PESTAÑAS DEL MODAL FORO / COMUNIDAD
+window.switchForumTab = function(tab) {
+    const btnChat = document.getElementById('btnTabChat');
+    const btnReq = document.getElementById('btnTabRequests');
+    const chatContent = document.getElementById('forumChatContent');
+    const reqContent = document.getElementById('forumRequestsContent');
+
+    if (tab === 'chat') {
+        btnChat.classList.add('active'); btnReq.classList.remove('active');
+        chatContent.classList.remove('hidden'); reqContent.classList.add('hidden');
+    } else {
+        btnReq.classList.add('active'); btnChat.classList.remove('active');
+        reqContent.classList.remove('hidden'); chatContent.classList.add('hidden');
+    }
+};
+
+// PETICIONES DE JUEGOS
+document.getElementById('formGameRequest').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('reqGameTitle').value.trim();
+    const platform = document.getElementById('reqPlatform').value;
+    if (!title) return;
+
+    requestsRef.push({
+        title,
+        platform,
+        requestedBy: currentUser ? currentUser.name : "Invitado",
+        timestamp: Date.now()
+    }, (err) => {
+        if (!err) {
+            document.getElementById('reqGameTitle').value = '';
+        }
+    });
+});
+
+function renderGameRequests() {
+    const container = document.getElementById('requestsContainer');
+    if (!container) return;
+    if (loadedRequests.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; font-size:0.85rem;">No hay peticiones aún. Sé el primero.</p>';
+        return;
+    }
+
+    container.innerHTML = loadedRequests.map(r => `
+        <div class="request-card-item">
+            <div>
+                <strong>${r.title}</strong>
+                <small style="color:#00a2ff; display:block;">[${r.platform}] - Pedido por ${r.requestedBy}</small>
+            </div>
+            <span style="font-size:0.75rem; color:#888;"><i class="fas fa-clock"></i> Pendiente</span>
+        </div>
+    `).join('');
+}
+
+// ORDENAR JUEGOS
+window.applySorting = function() {
+    const sortVal = document.getElementById('sortSelect').value;
+    let sorted = [...loadedGames];
+
+    if (sortVal === 'downloads') {
+        sorted.sort((a, b) => (b.downloadsCount || 0) - (a.downloadsCount || 0));
+    } else if (sortVal === 'rating') {
+        sorted.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
+    }
+
+    renderGames(sorted);
+};
+
+// CONTADOR DE DESCARGAS
+window.trackDownload = function(gameId) {
+    const game = loadedGames.find(g => g.id === gameId);
+    if (!game) return;
+    const newCount = (game.downloadsCount || 0) + 1;
+    gamesRef.child(gameId).update({ downloadsCount: newCount });
+};
 
 // LIGHTBOX
 window.openImageModal = function(url) {
@@ -298,12 +492,8 @@ window.openImageModal = function(url) {
             </div>
         `;
         document.body.appendChild(lightbox);
-
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) closeImageModal();
-        });
+        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeImageModal(); });
     }
-
     document.getElementById('lightboxImg').src = url;
     lightbox.classList.add('active');
 };
@@ -329,6 +519,7 @@ function renderOnlineUsersSidebar() {
         const li = document.createElement('li');
         const devTag = u.device ? `<small style="font-size:0.7rem; color:#888;">[${u.device}]</small>` : '';
         li.innerHTML = `<img src="${u.avatar}" alt="${u.name}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';"> <span>${u.name} ${devTag}</span>`;
+        li.onclick = () => openPublicProfile(u.name, u.avatar);
         usersList.appendChild(li);
     });
 }
@@ -378,7 +569,7 @@ function renderHeroCarousel(games) {
     }
 }
 
-// CATEGORÍAS (MOSTRANDO HASTA RETRO Y COMPLEMENTANDO CON EL BOTÓN FILTRAR)
+// CATEGORÍAS
 function renderCategoriesBar() {
     const bar = document.getElementById('categoriesBar');
     const select = document.getElementById('adminCategory');
@@ -387,13 +578,7 @@ function renderCategoriesBar() {
     select.innerHTML = '';
 
     let retroIndex = loadedGenres.findIndex(g => g.name.toLowerCase() === 'retro');
-    let displayedGenres = loadedGenres;
-    
-    if (retroIndex !== -1) {
-        displayedGenres = loadedGenres.slice(0, retroIndex + 1);
-    } else {
-        displayedGenres = loadedGenres.slice(0, 4);
-    }
+    let displayedGenres = retroIndex !== -1 ? loadedGenres.slice(0, retroIndex + 1) : loadedGenres.slice(0, 4);
 
     displayedGenres.forEach(g => {
         bar.innerHTML += `<button class="cat-btn" data-cat="${g.name}">${g.name}</button>`;
@@ -420,17 +605,13 @@ function setupCategoryEvents() {
                 renderGames(loadedGames.filter(g => favorites.includes(g.id)));
             } else {
                 renderGames(loadedGames.filter(g => {
-                    if (Array.isArray(g.category)) {
-                        return g.category.includes(cat);
-                    }
-                    return g.category === cat;
+                    return Array.isArray(g.category) ? g.category.includes(cat) : g.category === cat;
                 }));
             }
         });
     });
 }
 
-// CONFIGURACIÓN Y DESPLIEGUE DE BARRA DE FILTROS
 function setupFilterToggle() {
     const btnToggleFilter = document.getElementById('btnToggleFilter');
     const filterMenu = document.getElementById('filterDropdownMenu');
@@ -454,14 +635,12 @@ function setupFilterToggle() {
 function populateFilterDropdowns() {
     const filterGenreExtra = document.getElementById('filterGenreExtra');
     if (!filterGenreExtra) return;
-
     filterGenreExtra.innerHTML = '<option value="all">Todos los géneros</option>';
     loadedGenres.forEach(g => {
         filterGenreExtra.innerHTML += `<option value="${g.name}">${g.name}</option>`;
     });
 }
 
-// APLICAR FILTROS AVANZADOS DE PLATAFORMA, PESO Y GÉNERO
 window.applyAdvancedFilters = function() {
     const platform = document.getElementById('filterPlatform').value;
     const size = document.getElementById('filterSize').value;
@@ -475,14 +654,7 @@ window.applyAdvancedFilters = function() {
             matchesPlatform = categories.includes(platform.toLowerCase()) || titleAndDesc.includes(platform.toLowerCase());
         }
 
-        let matchesGenre = true;
-        if (extraGenre !== 'all') {
-            if (Array.isArray(game.category)) {
-                matchesGenre = game.category.includes(extraGenre);
-            } else {
-                matchesGenre = game.category === extraGenre;
-            }
-        }
+        let matchesGenre = extraGenre === 'all' || (Array.isArray(game.category) ? game.category.includes(extraGenre) : game.category === extraGenre);
 
         let matchesSize = true;
         if (size !== 'all' && game.size) {
@@ -512,7 +684,6 @@ window.resetAdvancedFilters = function() {
     document.getElementById('btnToggleFilter').classList.remove('active');
 };
 
-// NOTICIAS
 function renderNews() {
     const newsContainer = document.getElementById('newsContainer');
     const isMod = currentUser && (currentUser.isMod || MODERATOR_EMAILS.includes(currentUser.email));
@@ -546,25 +717,29 @@ function renderGames(data) {
         const card = document.createElement('div');
         card.className = `game-card ${isBlocked ? 'restricted-blur' : ''}`;
         
-        let overlayHTML = '';
-        if (isBlocked) {
-            overlayHTML = `
-                <div class="age-lock-overlay">
-                    <i class="fas fa-user-lock"></i>
-                    <span class="badge-18">+18 AÑOS</span>
-                    <p>${currentUser ? 'Para mayores de edad.' : 'Inicia sesión para ver.'}</p>
-                </div>
-            `;
-        }
+        let overlayHTML = isBlocked ? `
+            <div class="age-lock-overlay">
+                <i class="fas fa-user-lock"></i>
+                <span class="badge-18">+18 AÑOS</span>
+                <p>${currentUser ? 'Para mayores de edad.' : 'Inicia sesión para ver.'}</p>
+            </div>
+        ` : '';
 
         const versionCount = (game.versions && game.versions.length) ? game.versions.length : 1;
         const genresFormatted = formatGameGenres(game.category);
+        const downloads = game.downloadsCount || 0;
 
         card.innerHTML = `
             <div class="card-img-wrap">
                 <img src="${game.image}" alt="${game.title}" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">
+                
+                <div class="card-badges-row">
+                    ${game.onlineStatus === 'online' ? '<span class="status-pill online"><i class="fas fa-wifi"></i> Online</span>' : ''}
+                    ${game.gamepadStatus ? '<span class="status-pill gamepad"><i class="fas fa-gamepad"></i> Mando</span>' : ''}
+                </div>
+
                 ${overlayHTML}
-                ${isMod ? `<button class="edit-card-btn" onclick="openAdminEditModal(event, '${game.id}')" title="Editar Juego / Versiones"><i class="fas fa-edit"></i></button>` : ''}
+                ${isMod ? `<button class="edit-card-btn" onclick="openAdminEditModal(event, '${game.id}')" title="Editar Juego"><i class="fas fa-edit"></i></button>` : ''}
                 ${!isBlocked ? `<button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${game.id}')"><i class="fas fa-heart"></i></button>` : ''}
             </div>
             <div class="card-info" ${!isBlocked ? `onclick="openGameModal('${game.id}')"` : ''}>
@@ -574,13 +749,13 @@ function renderGames(data) {
                     <span><i class="fas fa-hdd"></i> ${game.size}</span>
                     <span><i class="fas fa-code-branch"></i> ${versionCount} Ver.</span>
                 </div>
+                <div class="downloads-counter"><i class="fas fa-fire"></i> ${downloads} descargas</div>
             </div>
         `;
 
         if (isBlocked) {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.edit-card-btn')) return;
-                alert("⚠️ Contenido restringido para mayores de 18 años.");
+                if (!e.target.closest('.edit-card-btn')) alert("⚠️ Contenido restringido para mayores de 18 años.");
             });
         }
 
@@ -588,7 +763,6 @@ function renderGames(data) {
     });
 }
 
-// BUSCADOR
 searchInput.addEventListener('input', (e) => {
     const val = e.target.value.toLowerCase();
     renderGames(loadedGames.filter(g => g.title.toLowerCase().includes(val)));
@@ -605,7 +779,7 @@ function toggleFav(e, gameId) {
     renderGames(loadedGames);
 }
 
-// MODAL JUEGO - CON COMENTARIOS Y AVATARES CORREGIDOS
+// MODAL JUEGO
 function openGameModal(id) {
     const game = loadedGames.find(g => g.id === id);
     if (!game) return;
@@ -616,15 +790,10 @@ function openGameModal(id) {
     }
 
     const modalContent = document.getElementById('gameModalContent');
-    let embedHTML = '';
-    if (game.embed && game.embed.trim() !== '') {
-        embedHTML = `
-            <h4 style="color:var(--neon-red); margin: 20px 0 10px 0;"><i class="fas fa-video"></i> Tutorial / Demo:</h4>
-            <div class="embed-video-container">
-                ${game.embed}
-            </div>
-        `;
-    }
+    let embedHTML = game.embed ? `
+        <h4 style="color:var(--neon-red); margin: 20px 0 10px 0;"><i class="fas fa-video"></i> Tutorial / Demo:</h4>
+        <div class="embed-video-container">${game.embed}</div>
+    ` : '';
 
     const versions = (game.versions && game.versions.length > 0) ? game.versions : [
         { name: "Versión Portable", downloadUrl: game.downloadUrl || "#", server: game.server || "MediaFire" }
@@ -668,9 +837,13 @@ function openGameModal(id) {
                 </div>
             </div>
 
-            <a href="${firstVersion.downloadUrl}" target="_blank" id="btnMainDownloadUrl" class="btn-primary full-width" style="margin-top:12px; display:flex; text-decoration:none; justify-content:center; align-items:center;">
+            <a href="${firstVersion.downloadUrl}" target="_blank" id="btnMainDownloadUrl" onclick="trackDownload('${id}')" class="btn-primary full-width" style="margin-top:12px; display:flex; text-decoration:none; justify-content:center; align-items:center;">
                 <i class="fas fa-download"></i> DESCARGAR AHORA (<span id="btnDownloadServerText">${firstVersion.server || 'MediaFire'}</span>)
             </a>
+
+            <button class="report-btn-link" onclick="reportGameLink('${id}', '${game.title}')">
+                <i class="fas fa-exclamation-triangle"></i> ¿Enlace caído o con problemas? Reportar aquí
+            </button>
         </div>
 
         <div style="background:#0a0a0f; padding: 15px; border-radius: 8px; margin-bottom: 20px; border:1px solid #1f1f2e;">
@@ -694,9 +867,7 @@ function openGameModal(id) {
                     <span style="color:#888; font-size:0.9rem;"> / 5.0</span>
                     <div style="font-size:0.75rem; color:#888;" id="totalVotesCount">0 valoraciones</div>
                 </div>
-                <div id="starsAverageDisplay" style="color:#ffca28; font-size:1.1rem;">
-                    ☆☆☆☆☆
-                </div>
+                <div id="starsAverageDisplay" style="color:#ffca28; font-size:1.1rem;">☆☆☆☆☆</div>
             </div>
 
             ${currentUser ? `
@@ -752,7 +923,6 @@ function openGameModal(id) {
     }
 }
 
-// TOGGLE Y SELECCIÓN DE VERSIÓN DESPLEGABLE
 window.toggleVersionMenu = function(e) {
     e.stopPropagation();
     const btn = document.getElementById('btnDropdownVersions');
@@ -778,18 +948,12 @@ window.selectVersionFromDropdown = function(index, gameId) {
 
     const selectedVer = game.versions[index];
 
-    const displayTitle = document.getElementById('displaySelectedVersionName');
-    const displayServer = document.getElementById('displaySelectedVersionServer');
-    const btnDownload = document.getElementById('btnMainDownloadUrl');
-    const btnServerText = document.getElementById('btnDownloadServerText');
+    document.getElementById('displaySelectedVersionName').textContent = selectedVer.name;
+    document.getElementById('displaySelectedVersionServer').innerHTML = `<i class="fas fa-cloud-download-alt"></i> ${selectedVer.server || 'MediaFire'}`;
+    document.getElementById('btnDownloadServerText').textContent = selectedVer.server || 'MediaFire';
+    document.getElementById('btnMainDownloadUrl').href = selectedVer.downloadUrl;
 
-    if (displayTitle) displayTitle.textContent = selectedVer.name;
-    if (displayServer) displayServer.innerHTML = `<i class="fas fa-cloud-download-alt"></i> ${selectedVer.server || 'MediaFire'}`;
-    if (btnServerText) btnServerText.textContent = selectedVer.server || 'MediaFire';
-    if (btnDownload) btnDownload.href = selectedVer.downloadUrl;
-
-    const items = document.querySelectorAll('.version-dropdown-item');
-    items.forEach((item, idx) => {
+    document.querySelectorAll('.version-dropdown-item').forEach((item, idx) => {
         if (idx === index) item.classList.add('active');
         else item.classList.remove('active');
     });
@@ -817,12 +981,8 @@ function setupStarSelector() {
     });
 }
 
-// RENDERIZADO DE COMENTARIOS AJUSTADO CON AVATAR ENCUADRADO Y TEXTO AL COSTADO
 function initGameComments(gameId) {
-    if (currentActiveGameCommentsRef) {
-        currentActiveGameCommentsRef.off();
-    }
-
+    if (currentActiveGameCommentsRef) currentActiveGameCommentsRef.off();
     currentActiveGameCommentsRef = commentsRef.child(gameId);
 
     currentActiveGameCommentsRef.on('value', (snapshot) => {
@@ -844,7 +1004,6 @@ function initGameComments(gameId) {
 
         const commentsArray = Object.values(data);
         let totalRating = 0;
-
         container.innerHTML = '';
 
         commentsArray.reverse().forEach(c => {
@@ -855,10 +1014,10 @@ function initGameComments(gameId) {
             const item = document.createElement('div');
             item.className = 'comment-item';
             item.innerHTML = `
-                <img src="${c.avatar}" alt="${c.author}" class="comment-avatar" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
+                <img src="${c.avatar}" alt="${c.author}" onclick="openPublicProfile('${c.author}', '${c.avatar}')" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Guest';">
                 <div class="comment-main">
                     <div class="comment-header">
-                        <span class="comment-author">${c.author}</span>
+                        <span class="comment-author" onclick="openPublicProfile('${c.author}', '${c.avatar}')">${c.author}</span>
                         <span class="comment-date">${dateStr}</span>
                     </div>
                     <div class="comment-stars">${starsHTML}</div>
@@ -877,10 +1036,11 @@ function initGameComments(gameId) {
             const roundedAvg = Math.round(parseFloat(avg));
             starsAvgEl.textContent = '★'.repeat(roundedAvg) + '☆'.repeat(5 - roundedAvg);
         }
+
+        gamesRef.child(gameId).update({ avgRating: parseFloat(avg) });
     });
 }
 
-// GESTIÓN DINÁMICA DE CAMPOS DE VERSIÓN EN PANEL ADMIN
 function addVersionField(name = '', downloadUrl = '', server = 'MediaFire') {
     const container = document.getElementById('versionsListContainer');
     if (!container) return;
@@ -892,16 +1052,16 @@ function addVersionField(name = '', downloadUrl = '', server = 'MediaFire') {
         <div class="form-row">
             <div class="form-group" style="margin-bottom:6px;">
                 <label>Nombre de la Versión</label>
-                <input type="text" class="ver-name" placeholder="Ej: Versión Portable / v1.16.5" value="${name}" required>
+                <input type="text" class="ver-name" placeholder="Ej: Portable / v1.0" value="${name}" required>
             </div>
             <div class="form-group" style="margin-bottom:6px;">
                 <label>Servidor</label>
-                <input type="text" class="ver-server" placeholder="Ej: MediaFire / Google Drive" value="${server || 'MediaFire'}">
+                <input type="text" class="ver-server" placeholder="MediaFire" value="${server || 'MediaFire'}">
             </div>
         </div>
         <div class="form-group" style="margin-bottom:0;">
-            <label>Link de Descarga Directa</label>
-            <input type="url" class="ver-url" placeholder="https://mediafire.com/file/..." value="${downloadUrl}" required>
+            <label>Link Directo</label>
+            <input type="url" class="ver-url" placeholder="https://..." value="${downloadUrl}" required>
         </div>
     `;
     container.appendChild(row);
@@ -916,9 +1076,7 @@ window.removeVersionField = function(btn) {
     }
 };
 
-document.getElementById('btnAddVersionField').addEventListener('click', () => {
-    addVersionField();
-});
+document.getElementById('btnAddVersionField').addEventListener('click', () => { addVersionField(); });
 
 function getVersionsFromForm() {
     const rows = document.querySelectorAll('.version-item-row');
@@ -935,7 +1093,6 @@ function getVersionsFromForm() {
     return versions;
 }
 
-// TABS ADMIN
 window.switchAdminTab = function(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
@@ -949,10 +1106,12 @@ window.switchAdminTab = function(tab) {
     } else if (tab === 'genres') {
         document.getElementById('tabAdminGenres').classList.add('active');
         document.getElementById('contentAdminGenres').classList.remove('hidden');
+    } else if (tab === 'reports') {
+        document.getElementById('tabAdminReports').classList.add('active');
+        document.getElementById('contentAdminReports').classList.remove('hidden');
     }
 };
 
-// ADMIN JUEGOS
 btnAdminPanel.addEventListener('click', () => {
     resetAdminForm();
     switchAdminTab('games');
@@ -960,7 +1119,7 @@ btnAdminPanel.addEventListener('click', () => {
 });
 
 function openAdminEditModal(e, id) {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     const game = loadedGames.find(g => g.id === id);
     if (!game) return;
 
@@ -971,6 +1130,8 @@ function openAdminEditModal(e, id) {
     document.getElementById('adminImage').value = game.image;
     document.getElementById('adminDesc').value = game.desc;
     document.getElementById('adminAgeRestricted').value = game.ageRestricted ? "true" : "false";
+    document.getElementById('adminOnlineStatus').value = game.onlineStatus || "offline";
+    document.getElementById('adminGamepadStatus').value = game.gamepadStatus ? "true" : "false";
     document.getElementById('adminFeatured').checked = !!game.featured;
 
     const selectCat = document.getElementById('adminCategory');
@@ -1021,13 +1182,16 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
     const image = document.getElementById('adminImage').value.trim();
     const desc = document.getElementById('adminDesc').value.trim();
     const ageRestricted = document.getElementById('adminAgeRestricted').value === "true";
+    const onlineStatus = document.getElementById('adminOnlineStatus').value;
+    const gamepadStatus = document.getElementById('adminGamepadStatus').value === "true";
     const featured = document.getElementById('adminFeatured').checked;
 
     const selectCat = document.getElementById('adminCategory');
     const selectedCategories = Array.from(selectCat.selectedOptions).map(opt => opt.value);
-
     const versions = getVersionsFromForm();
-    const primaryDownloadUrl = versions.length > 0 ? versions[0].downloadUrl : "#";
+
+    const existingGame = loadedGames.find(g => g.id === id);
+    const downloadsCount = existingGame ? (existingGame.downloadsCount || 0) : 0;
 
     const gameData = {
         id,
@@ -1038,8 +1202,11 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
         image,
         desc,
         ageRestricted,
+        onlineStatus,
+        gamepadStatus,
         featured,
-        downloadUrl: primaryDownloadUrl,
+        downloadsCount,
+        downloadUrl: versions.length > 0 ? versions[0].downloadUrl : "#",
         versions: versions,
         specs: {
             so: document.getElementById('adminSo').value.trim(),
@@ -1054,23 +1221,58 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
         if (!err) {
             alert("✅ Juego guardado exitosamente.");
             resetAdminForm();
-            document.getElementById('adminModal').classList.remove('active');
-        } else {
-            alert("❌ Error al guardar el juego.");
         }
     });
 });
 
-// ADMIN CATEGORÍAS & FILTROS
+function renderAdminGamesList() {
+    const container = document.getElementById('adminGamesListContainer');
+    if (!container) return;
+    container.innerHTML = loadedGames.map(g => `
+        <div class="admin-list-item">
+            <div>
+                <strong>${g.title}</strong>
+                <small style="color:#aaa; display:block;">Descargas: ${g.downloadsCount || 0}</small>
+            </div>
+            <div>
+                <button type="button" onclick="openAdminEditModal(event, '${g.id}')" style="background:none; border:none; color:#ffa500; cursor:pointer; margin-right:8px;"><i class="fas fa-edit"></i></button>
+                <button type="button" onclick="deleteGame('${g.id}')" style="background:none; border:none; color:#ff4444; cursor:pointer;"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.filterAdminGamesList = function() {
+    const query = document.getElementById('adminGameSearchInput').value.toLowerCase();
+    const filtered = loadedGames.filter(g => g.title.toLowerCase().includes(query));
+    const container = document.getElementById('adminGamesListContainer');
+    container.innerHTML = filtered.map(g => `
+        <div class="admin-list-item">
+            <div>
+                <strong>${g.title}</strong>
+                <small style="color:#aaa; display:block;">Descargas: ${g.downloadsCount || 0}</small>
+            </div>
+            <div>
+                <button type="button" onclick="openAdminEditModal(event, '${g.id}')" style="background:none; border:none; color:#ffa500; cursor:pointer; margin-right:8px;"><i class="fas fa-edit"></i></button>
+                <button type="button" onclick="deleteGame('${g.id}')" style="background:none; border:none; color:#ff4444; cursor:pointer;"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `).join('');
+};
+
+window.deleteGame = function(id) {
+    if (confirm("¿Seguro de eliminar este juego del catálogo?")) {
+        gamesRef.child(id).remove();
+    }
+};
+
 document.getElementById('formAdminGenre').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('genreName').value.trim();
     if (!name) return;
 
     genresRef.child(name).set({ name }, (err) => {
-        if (!err) {
-            document.getElementById('genreName').value = '';
-        }
+        if (!err) document.getElementById('genreName').value = '';
     });
 });
 
@@ -1091,7 +1293,6 @@ window.deleteGenre = function(name) {
     }
 };
 
-// ADMIN NOTICIAS
 document.getElementById('formAdminNews').addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('newsId').value || 'news-' + Date.now();
@@ -1100,9 +1301,7 @@ document.getElementById('formAdminNews').addEventListener('submit', (e) => {
     const content = document.getElementById('newsContent').value.trim();
 
     newsRef.child(id).set({ id, title, date, content }, (err) => {
-        if (!err) {
-            resetNewsForm();
-        }
+        if (!err) resetNewsForm();
     });
 });
 
@@ -1149,22 +1348,17 @@ function resetNewsForm() {
     document.getElementById('btnCancelNewsEdit').classList.add('hidden');
 }
 
-// EVENTOS Y MODALES
 function setupEventListeners() {
-    // Previa de imagen local al seleccionar archivo en el perfil
     const avatarFileInput = document.getElementById('profileAvatarFile');
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
-            // Validación de peso máximo: 500 KB = 500 * 1024 bytes
             if (file.size > 500 * 1024) {
-                alert("⚠️ La imagen supera el peso máximo de 500 KB. Elige una foto más ligera.");
+                alert("⚠️ La imagen supera el peso máximo de 500 KB.");
                 avatarFileInput.value = '';
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = function(evt) {
                 document.getElementById('profileAvatarPreview').src = evt.target.result;
@@ -1173,13 +1367,9 @@ function setupEventListeners() {
         });
     }
 
-    // Auth Modal
     btnAuth.addEventListener('click', () => {
-        if (currentUser) {
-            openProfileModal();
-        } else {
-            document.getElementById('authModal').classList.add('active');
-        }
+        if (currentUser) openProfileModal();
+        else document.getElementById('authModal').classList.add('active');
     });
 
     document.getElementById('closeAuthModal').addEventListener('click', () => {
@@ -1200,7 +1390,6 @@ function setupEventListeners() {
         document.getElementById('formLogin').classList.remove('active');
     });
 
-    // Login Form
     document.getElementById('formLogin').addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value.trim();
@@ -1210,8 +1399,8 @@ function setupEventListeners() {
             if (data) {
                 const userId = Object.keys(data)[0];
                 const user = data[userId];
-                
                 const ageInfo = calculateAgeInfo(user.birthdate);
+
                 currentUser = {
                     id: userId,
                     name: user.name,
@@ -1227,13 +1416,10 @@ function setupEventListeners() {
                 updateFirebasePresence();
                 document.getElementById('authModal').classList.remove('active');
                 renderGames(loadedGames);
-            } else {
-                alert("Usuario no encontrado. Regístrate primero.");
-            }
+            } else alert("Usuario no encontrado.");
         });
     });
 
-    // Register Form
     document.getElementById('formRegister').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('regUser').value.trim();
@@ -1242,23 +1428,15 @@ function setupEventListeners() {
 
         const ageInfo = calculateAgeInfo(birthdate);
         const newUserRef = usersRef.push();
-        const avatar = "https://api.dicebear.com/7.x/bottts/svg?seed=" + name;
-
         const userData = {
-            name,
-            birthdate,
-            email,
-            avatar,
+            name, birthdate, email,
+            avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=" + name,
             isMod: MODERATOR_EMAILS.includes(email)
         };
 
         newUserRef.set(userData, (err) => {
             if (!err) {
-                currentUser = {
-                    id: newUserRef.key,
-                    ...userData,
-                    isAdult: ageInfo.isAdult
-                };
+                currentUser = { id: newUserRef.key, ...userData, isAdult: ageInfo.isAdult };
                 localStorage.setItem('basados_user', JSON.stringify(currentUser));
                 updateUserUI();
                 updateFirebasePresence();
@@ -1268,7 +1446,6 @@ function setupEventListeners() {
         });
     });
 
-    // Profile Modal
     document.getElementById('closeProfileModal').addEventListener('click', () => {
         document.getElementById('profileModal').classList.remove('active');
     });
@@ -1310,9 +1487,7 @@ function setupEventListeners() {
                 return;
             }
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                processSave(evt.target.result);
-            };
+            reader.onload = function(evt) { processSave(evt.target.result); };
             reader.readAsDataURL(file);
         } else if (newAvatarUrl) {
             processSave(newAvatarUrl);
@@ -1330,7 +1505,6 @@ function setupEventListeners() {
         renderGames(loadedGames);
     });
 
-    // Modales de Juegos, Admin y Notificaciones
     document.getElementById('closeGameModal').addEventListener('click', () => {
         document.getElementById('gameModal').classList.remove('active');
         if (currentActiveGameCommentsRef) currentActiveGameCommentsRef.off();
@@ -1362,19 +1536,15 @@ function setupEventListeners() {
         document.getElementById('notifModal').classList.remove('active');
     });
 
-    // Chat Form
     document.getElementById('formChat').addEventListener('submit', (e) => {
         e.preventDefault();
         const chatInput = document.getElementById('chatInput');
         const text = chatInput.value.trim();
         if (!text) return;
 
-        const name = currentUser ? currentUser.name : "Invitado Basado";
-        const avatar = currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest";
-
         messagesRef.push({
-            author: name,
-            avatar: avatar,
+            author: currentUser ? currentUser.name : "Invitado Basado",
+            avatar: currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest",
             text: text,
             timestamp: Date.now()
         });
@@ -1395,7 +1565,6 @@ function openProfileModal() {
 
     const ageInfo = calculateAgeInfo(currentUser.birthdate);
     document.getElementById('profileAgeBadge').value = ageInfo.label;
-
     document.getElementById('profileModal').classList.add('active');
 }
 
