@@ -22,6 +22,7 @@ const genresRef = db.ref('genres');
 const commentsRef = db.ref('comments');
 const reportsRef = db.ref('reports');
 const requestsRef = db.ref('game_requests');
+const socialRef = db.ref('social_links');
 
 // IMAGEN POR DEFECTO PARA FALLBACKS
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
@@ -64,6 +65,8 @@ const defaultGames = [
             { name: "Versión Portable v1.0", downloadUrl: "https://ouo.io/gx2F6LP", server: "MediaFire" },
             { name: "Versión HD Modpack", downloadUrl: "https://ouo.io/gx2F6LP", server: "MediaFire" }
         ],
+        fixOnlineServer: "",
+        fixOnlineUrl: "",
         featured: true,
         ageRestricted: false,
         onlineStatus: "online",
@@ -87,6 +90,14 @@ const defaultNews = [
     { id: "news-2", title: "Nuevos Ports Optimizados", date: "12 SEPT, 2026", content: "Optimizando los instaladores para que corran en PC y móviles de gama baja/media." }
 ];
 
+const defaultSocialLinks = {
+    discord: "https://discord.gg",
+    telegram: "https://t.me",
+    youtube: "https://youtube.com",
+    instagram: "https://instagram.com",
+    tiktok: "https://tiktok.com"
+};
+
 // ESTADO GLOBAL
 let currentUser = JSON.parse(localStorage.getItem('basados_user')) || null;
 let favorites = JSON.parse(localStorage.getItem('basados_favs')) || [];
@@ -95,6 +106,7 @@ let loadedGenres = [];
 let loadedNews = [];
 let loadedReports = [];
 let loadedRequests = [];
+let loadedSocialLinks = defaultSocialLinks;
 let currentOnlineList = [];
 let myUserRef = null;
 let currentDeviceInfo = { type: 'pc', os: 'windows' };
@@ -294,7 +306,20 @@ function initRealtimeFirebase() {
         renderAdminNews();
     });
 
-    // 4. Reportes de Enlaces
+    // 4. Redes Sociales
+    socialRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            loadedSocialLinks = data;
+        } else {
+            socialRef.set(defaultSocialLinks);
+            loadedSocialLinks = defaultSocialLinks;
+        }
+        renderCommunitySocialGrid();
+        populateAdminSocialForm();
+    });
+
+    // 5. Reportes de Enlaces
     reportsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         loadedReports = data ? Object.values(data) : [];
@@ -303,14 +328,14 @@ function initRealtimeFirebase() {
         renderAdminReports();
     });
 
-    // 5. Peticiones de Juegos
+    // 6. Peticiones de Juegos
     requestsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         loadedRequests = data ? Object.values(data) : [];
         renderGameRequests();
     });
 
-    // 6. Chat
+    // 7. Chat
     messagesRef.limitToLast(50).on('value', (snapshot) => {
         const data = snapshot.val();
         const chatMessages = document.getElementById('chatMessages');
@@ -343,7 +368,7 @@ function initRealtimeFirebase() {
         }
     });
 
-    // 7. Presencia en Vivo
+    // 8. Presencia en Vivo
     myUserRef = onlineUsersRef.push();
     myUserRef.onDisconnect().remove();
     updateFirebasePresence();
@@ -357,6 +382,42 @@ function initRealtimeFirebase() {
         renderOnlineUsersSidebar();
     });
 }
+
+// RENDERIZAR REDES SOCIALES DE LA COMUNIDAD
+function renderCommunitySocialGrid() {
+    const grid = document.getElementById('communitySocialGrid');
+    if (!grid) return;
+    grid.innerHTML = `
+        <a href="${loadedSocialLinks.discord || '#'}" target="_blank" class="social-btn discord-btn"><i class="fab fa-discord"></i> Discord</a>
+        <a href="${loadedSocialLinks.telegram || '#'}" target="_blank" class="social-btn telegram-btn"><i class="fab fa-telegram"></i> Telegram</a>
+        <a href="${loadedSocialLinks.youtube || '#'}" target="_blank" class="social-btn youtube-btn"><i class="fab fa-youtube"></i> YouTube</a>
+        <a href="${loadedSocialLinks.instagram || '#'}" target="_blank" class="social-btn instagram-btn"><i class="fab fa-instagram"></i> Instagram</a>
+        <a href="${loadedSocialLinks.tiktok || '#'}" target="_blank" class="social-btn tiktok-btn"><i class="fab fa-tiktok"></i> TikTok</a>
+    `;
+}
+
+function populateAdminSocialForm() {
+    document.getElementById('adminLinkDiscord').value = loadedSocialLinks.discord || '';
+    document.getElementById('adminLinkTelegram').value = loadedSocialLinks.telegram || '';
+    document.getElementById('adminLinkYoutube').value = loadedSocialLinks.youtube || '';
+    document.getElementById('adminLinkInstagram').value = loadedSocialLinks.instagram || '';
+    document.getElementById('adminLinkTiktok').value = loadedSocialLinks.tiktok || '';
+}
+
+document.getElementById('formAdminSocial').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const updatedSocial = {
+        discord: document.getElementById('adminLinkDiscord').value.trim(),
+        telegram: document.getElementById('adminLinkTelegram').value.trim(),
+        youtube: document.getElementById('adminLinkYoutube').value.trim(),
+        instagram: document.getElementById('adminLinkInstagram').value.trim(),
+        tiktok: document.getElementById('adminLinkTiktok').value.trim()
+    };
+
+    socialRef.set(updatedSocial, (err) => {
+        if (!err) alert("✅ Redes Sociales actualizadas en tiempo real.");
+    });
+});
 
 // PERFIL PÚBLICO
 window.openPublicProfile = function(name, avatar) {
@@ -802,6 +863,24 @@ function openGameModal(id) {
     const firstVersion = versions[0];
     const genresFormatted = formatGameGenres(game.category);
 
+    // CAJA DE FIX ONLINE SI EXISTE
+    let fixOnlineHTML = '';
+    if (game.fixOnlineUrl) {
+        fixOnlineHTML = `
+            <div class="fix-online-display-box">
+                <h4 style="color:#00ff80; margin-bottom: 5px; font-family: var(--font-head); font-size: 0.95rem;">
+                    <i class="fas fa-plug"></i> FIX ONLINE DISPONIBLE
+                </h4>
+                <p style="color:#ccc; font-size: 0.85rem;">
+                    ${game.fixOnlineServer || 'Servidor Online / Steam Fix'}
+                </p>
+                <a href="${game.fixOnlineUrl}" target="_blank" class="btn-fix-online-dl">
+                    <i class="fas fa-download"></i> DESCARGAR FIX ONLINE
+                </a>
+            </div>
+        `;
+    }
+
     modalContent.innerHTML = `
         <h2 style="font-family: var(--font-head); color: var(--neon-red); margin-bottom: 5px;">
             ${game.title} ${game.ageRestricted ? '<span class="badge-18-tag">+18</span>' : ''}
@@ -810,6 +889,8 @@ function openGameModal(id) {
             <i class="fas fa-tags"></i> ${genresFormatted}
         </div>
         <p style="color:#ccc; margin-bottom: 20px;">${game.desc}</p>
+
+        ${fixOnlineHTML}
         
         <div class="version-select-box">
             <div class="version-custom-dropdown">
@@ -1106,6 +1187,9 @@ window.switchAdminTab = function(tab) {
     } else if (tab === 'genres') {
         document.getElementById('tabAdminGenres').classList.add('active');
         document.getElementById('contentAdminGenres').classList.remove('hidden');
+    } else if (tab === 'social') {
+        document.getElementById('tabAdminSocial').classList.add('active');
+        document.getElementById('contentAdminSocial').classList.remove('hidden');
     } else if (tab === 'reports') {
         document.getElementById('tabAdminReports').classList.add('active');
         document.getElementById('contentAdminReports').classList.remove('hidden');
@@ -1132,6 +1216,8 @@ function openAdminEditModal(e, id) {
     document.getElementById('adminAgeRestricted').value = game.ageRestricted ? "true" : "false";
     document.getElementById('adminOnlineStatus').value = game.onlineStatus || "offline";
     document.getElementById('adminGamepadStatus').value = game.gamepadStatus ? "true" : "false";
+    document.getElementById('adminFixServer').value = game.fixOnlineServer || '';
+    document.getElementById('adminFixUrl').value = game.fixOnlineUrl || '';
     document.getElementById('adminFeatured').checked = !!game.featured;
 
     const selectCat = document.getElementById('adminCategory');
@@ -1184,6 +1270,8 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
     const ageRestricted = document.getElementById('adminAgeRestricted').value === "true";
     const onlineStatus = document.getElementById('adminOnlineStatus').value;
     const gamepadStatus = document.getElementById('adminGamepadStatus').value === "true";
+    const fixOnlineServer = document.getElementById('adminFixServer').value.trim();
+    const fixOnlineUrl = document.getElementById('adminFixUrl').value.trim();
     const featured = document.getElementById('adminFeatured').checked;
 
     const selectCat = document.getElementById('adminCategory');
@@ -1204,6 +1292,8 @@ document.getElementById('formAdminGame').addEventListener('submit', (e) => {
         ageRestricted,
         onlineStatus,
         gamepadStatus,
+        fixOnlineServer,
+        fixOnlineUrl,
         featured,
         downloadsCount,
         downloadUrl: versions.length > 0 ? versions[0].downloadUrl : "#",
