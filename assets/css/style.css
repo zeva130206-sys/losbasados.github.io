@@ -583,6 +583,45 @@ html, body {
     display: none;
 }
 
+/* CAJA DESTACADA PARA FIX ONLINE */
+.fix-online-display-box {
+    background: rgba(0, 255, 128, 0.05);
+    border: 1px solid #00ff80;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 15px rgba(0, 255, 128, 0.15);
+}
+
+.btn-fix-online-dl {
+    background: #00b359;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.3s;
+    margin-top: 8px;
+}
+
+.btn-fix-online-dl:hover {
+    background: #00ff80;
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 255, 128, 0.5);
+}
+
+.fix-online-box-admin {
+    background: #070e17;
+    border: 1px solid #00a2ff;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
 .section-title {
     font-family: var(--font-head);
     margin-bottom: 15px;
@@ -871,6 +910,8 @@ html, body {
 .discord-btn { background: #5865F2; }
 .telegram-btn { background: #0088cc; }
 .youtube-btn { background: #FF0000; }
+.instagram-btn { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+.tiktok-btn { background: #000; border: 1px solid #00f2fe; }
 
 .social-btn:hover {
     opacity: 0.85;
