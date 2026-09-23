@@ -23,9 +23,24 @@ const commentsRef = db.ref('comments');
 const reportsRef = db.ref('reports');
 const requestsRef = db.ref('game_requests');
 const socialRef = db.ref('social_links');
+const userScreenshotsRef = db.ref('screenshots');
+const friendsRef = db.ref('user_friends');
+const privateChatRef = db.ref('private_messages');
 
 // IMAGEN POR DEFECTO PARA FALLBACKS
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
+
+// PROTECCIÓN ANTI-INSPECCIÓN / CTRL+U / F12
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('keydown', (e) => {
+    if (
+        e.key === 'F12' ||
+        (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j'))
+    ) {
+        e.preventDefault();
+    }
+});
 
 // AUDIO SYNTHWAVE / LO-FI DE FONDO
 const bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3');
@@ -108,6 +123,11 @@ let loadedReports = [];
 let loadedRequests = [];
 let loadedSocialLinks = defaultSocialLinks;
 let currentOnlineList = [];
+let loadedScreenshots = {};
+let loadedFriendsData = {};
+let activeProfileViewName = "";
+let activePrivateChatPartner = null;
+let privateChatListener = null;
 let myUserRef = null;
 let currentDeviceInfo = { type: 'pc', os: 'windows' };
 
@@ -227,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFilterToggle();
     setupAudioToggle();
 
-    // Sonido al clickear cualquier botón
     document.addEventListener('click', (e) => {
         if (e.target.closest('button, .cat-btn, .game-card, .social-btn')) {
             playClickSound();
@@ -319,7 +338,24 @@ function initRealtimeFirebase() {
         populateAdminSocialForm();
     });
 
-    // 5. Reportes de Enlaces
+    // 5. Capturas de Pantalla
+    userScreenshotsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        loadedScreenshots = data || {};
+        if (activeProfileViewName) {
+            renderUserScreenshots(activeProfileViewName);
+        }
+    });
+
+    // 6. Amigos
+    friendsRef.on('value', (snapshot) => {
+        loadedFriendsData = snapshot.val() || {};
+        if (activeProfileViewName) {
+            renderFriendsList(activeProfileViewName);
+        }
+    });
+
+    // 7. Reportes de Enlaces
     reportsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         loadedReports = data ? Object.values(data) : [];
@@ -328,14 +364,14 @@ function initRealtimeFirebase() {
         renderAdminReports();
     });
 
-    // 6. Peticiones de Juegos
+    // 8. Peticiones de Juegos
     requestsRef.on('value', (snapshot) => {
         const data = snapshot.val();
         loadedRequests = data ? Object.values(data) : [];
         renderGameRequests();
     });
 
-    // 7. Chat
+    // 9. Chat
     messagesRef.limitToLast(50).on('value', (snapshot) => {
         const data = snapshot.val();
         const chatMessages = document.getElementById('chatMessages');
@@ -368,7 +404,7 @@ function initRealtimeFirebase() {
         }
     });
 
-    // 8. Presencia en Vivo
+    // 10. Presencia en Vivo
     myUserRef = onlineUsersRef.push();
     myUserRef.onDisconnect().remove();
     updateFirebasePresence();
@@ -383,7 +419,6 @@ function initRealtimeFirebase() {
     });
 }
 
-// RENDERIZAR REDES SOCIALES DE LA COMUNIDAD
 function renderCommunitySocialGrid() {
     const grid = document.getElementById('communitySocialGrid');
     if (!grid) return;
@@ -419,12 +454,246 @@ document.getElementById('formAdminSocial').addEventListener('submit', (e) => {
     });
 });
 
-// PERFIL PÚBLICO
+// PERFIL PÚBLICO & SISTEMA DE RED SOCIAL / AMIGOS / CAPTURAS
 window.openPublicProfile = function(name, avatar) {
+    activeProfileViewName = name;
     document.getElementById('publicName').textContent = name;
     document.getElementById('publicAvatarImg').src = avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=Guest';
+
+    const postBox = document.getElementById('postScreenshotBox');
+    const btnEdit = document.getElementById('btnEditProfileSettings');
+    const btnAdd = document.getElementById('btnAddFriend');
+    const btnDM = document.getElementById('btnOpenPrivateChat');
+
+    if (currentUser && currentUser.name === name) {
+        postBox.classList.remove('hidden');
+        btnEdit.classList.remove('hidden');
+        btnAdd.classList.add('hidden');
+        btnDM.classList.add('hidden');
+    } else {
+        postBox.classList.add('hidden');
+        btnEdit.classList.add('hidden');
+        if (currentUser) {
+            btnAdd.classList.remove('hidden');
+            btnDM.classList.remove('hidden');
+            
+            const isFriend = loadedFriendsData[currentUser.name] && loadedFriendsData[currentUser.name][name];
+            btnAdd.innerHTML = isFriend ? '<i class="fas fa-user-check"></i> Amigos' : '<i class="fas fa-user-plus"></i> Añadir Amigo';
+        } else {
+            btnAdd.classList.add('hidden');
+            btnDM.classList.add('hidden');
+        }
+    }
+
+    switchSocialProfileTab('screenshots');
+    renderUserScreenshots(name);
+    renderFriendsList(name);
     document.getElementById('publicProfileModal').classList.add('active');
 };
+
+window.toggleAddFriend = function() {
+    if (!currentUser || !activeProfileViewName) return;
+    const isFriend = loadedFriendsData[currentUser.name] && loadedFriendsData[currentUser.name][activeProfileViewName];
+
+    if (isFriend) {
+        friendsRef.child(currentUser.name).child(activeProfileViewName).remove();
+        friendsRef.child(activeProfileViewName).child(currentUser.name).remove();
+    } else {
+        friendsRef.child(currentUser.name).child(activeProfileViewName).set({ name: activeProfileViewName, timestamp: Date.now() });
+        friendsRef.child(activeProfileViewName).child(currentUser.name).set({ name: currentUser.name, timestamp: Date.now() });
+    }
+};
+
+window.switchSocialProfileTab = function(tab) {
+    const btnShots = document.getElementById('btnTabScreenshots');
+    const btnFriends = document.getElementById('btnTabFriends');
+    const contentShots = document.getElementById('socialScreenshotsContent');
+    const contentFriends = document.getElementById('socialFriendsContent');
+
+    if (tab === 'screenshots') {
+        btnShots.classList.add('active'); btnFriends.classList.remove('active');
+        contentShots.classList.remove('hidden'); contentFriends.classList.add('hidden');
+    } else {
+        btnFriends.classList.add('active'); btnShots.classList.remove('active');
+        contentFriends.classList.remove('hidden'); contentShots.classList.add('hidden');
+    }
+};
+
+function renderUserScreenshots(username) {
+    const feed = document.getElementById('screenshotsFeedGrid');
+    if (!feed) return;
+
+    const userShots = loadedScreenshots[username] ? Object.values(loadedScreenshots[username]) : [];
+
+    if (userShots.length === 0) {
+        feed.innerHTML = '<p style="color:#aaa; font-size:0.85rem; grid-column:1/-1;">Aún no ha subido publicaciones.</p>';
+        return;
+    }
+
+    feed.innerHTML = userShots.reverse().map(s => `
+        <div class="shot-card-item">
+            <div class="shot-card-info">
+                <strong>${s.title}</strong>
+            </div>
+            ${s.imageUrl ? `<img src="${s.imageUrl}" onclick="openImageModal('${s.imageUrl}')" title="Ampliar captura">` : ''}
+        </div>
+    `).join('');
+}
+
+function renderFriendsList(username) {
+    const container = document.getElementById('friendsListContainer');
+    const countBadge = document.getElementById('profileFriendsCount');
+    if (!container) return;
+
+    const userFriends = loadedFriendsData[username] ? Object.keys(loadedFriendsData[username]) : [];
+    if (countBadge) countBadge.textContent = userFriends.length;
+
+    if (userFriends.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; font-size:0.85rem;">No hay amigos añadidos.</p>';
+        return;
+    }
+
+    container.innerHTML = userFriends.map(friendName => `
+        <div class="friend-item-row">
+            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openPublicProfile('${friendName}', '')">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${friendName}">
+                <strong style="color:#fff; font-size:0.9rem;">${friendName}</strong>
+            </div>
+            ${currentUser ? `<button class="btn-secondary btn-sm" onclick="openPrivateChatWith('${friendName}')"><i class="fas fa-comment"></i> Chat</button>` : ''}
+        </div>
+    `).join('');
+}
+
+// MENSAJES PRIVADOS DMs
+window.openPrivateChatFromProfile = function() {
+    if (activeProfileViewName) openPrivateChatWith(activeProfileViewName);
+};
+
+window.openPrivateChatWith = function(targetName) {
+    if (!currentUser) return;
+    activePrivateChatPartner = targetName;
+
+    document.getElementById('privateChatTargetName').textContent = targetName;
+    document.getElementById('privateChatTargetAvatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${targetName}`;
+
+    const chatId = [currentUser.name, targetName].sort().join('_CHAT_');
+
+    if (privateChatListener) privateChatListener.off();
+    privateChatListener = privateChatRef.child(chatId);
+
+    privateChatListener.on('value', (snapshot) => {
+        const data = snapshot.val();
+        const container = document.getElementById('privateChatMessages');
+        container.innerHTML = '';
+
+        if (data) {
+            Object.values(data).forEach(msg => {
+                const isMine = msg.sender === currentUser.name;
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'chat-msg';
+                msgDiv.style.justifyContent = isMine ? 'flex-end' : 'flex-start';
+                msgDiv.innerHTML = `
+                    <div class="chat-msg-content" style="${isMine ? 'background:#800020; border-color:var(--neon-red);' : ''}">
+                        <span class="chat-author" style="color:${isMine ? '#ff4444' : '#00ff80'};">${msg.sender}</span>
+                        <p class="chat-text">${msg.text}</p>
+                    </div>
+                `;
+                container.appendChild(msgDiv);
+            });
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+        }
+    });
+
+    document.getElementById('privateChatModal').classList.add('active');
+};
+
+document.getElementById('closePrivateChatModal').addEventListener('click', () => {
+    document.getElementById('privateChatModal').classList.remove('active');
+    if (privateChatListener) privateChatListener.off();
+});
+
+document.getElementById('formPrivateChat').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentUser || !activePrivateChatPartner) return;
+
+    const input = document.getElementById('privateChatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chatId = [currentUser.name, activePrivateChatPartner].sort().join('_CHAT_');
+    privateChatRef.child(chatId).push({
+        sender: currentUser.name,
+        text: text,
+        timestamp: Date.now()
+    });
+
+    input.value = '';
+});
+
+// SUBIR CAPTURA CON COMPRESIÓN EN CANVAS
+document.getElementById('formPostScreenshot').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const title = document.getElementById('shotTitle').value.trim();
+    const fileInput = document.getElementById('shotFileInput');
+    const file = fileInput.files[0];
+
+    const savePost = (imgUrl = '') => {
+        userScreenshotsRef.child(currentUser.name).push({
+            title: title,
+            imageUrl: imgUrl,
+            timestamp: Date.now()
+        }, (err) => {
+            if (!err) {
+                alert("📸 Publicación enviada con éxito.");
+                document.getElementById('shotTitle').value = '';
+                fileInput.value = '';
+            }
+        });
+    };
+
+    if (file) {
+        if (file.size > 1024 * 1024) {
+            alert("⚠️ La foto no debe superar 1 MB de peso.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 1280;
+                const maxHeight = 720;
+
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                savePost(compressedBase64);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        savePost('');
+    }
+});
 
 document.getElementById('closePublicProfileModal').addEventListener('click', () => {
     document.getElementById('publicProfileModal').classList.remove('active');
@@ -863,7 +1132,6 @@ function openGameModal(id) {
     const firstVersion = versions[0];
     const genresFormatted = formatGameGenres(game.category);
 
-    // CAJA DE FIX ONLINE SI EXISTE
     let fixOnlineHTML = '';
     if (game.fixOnlineUrl) {
         fixOnlineHTML = `
@@ -1458,7 +1726,7 @@ function setupEventListeners() {
     }
 
     btnAuth.addEventListener('click', () => {
-        if (currentUser) openProfileModal();
+        if (currentUser) openPublicProfile(currentUser.name, currentUser.avatar);
         else document.getElementById('authModal').classList.add('active');
     });
 
@@ -1592,6 +1860,7 @@ function setupEventListeners() {
         updateUserUI();
         updateFirebasePresence();
         document.getElementById('profileModal').classList.remove('active');
+        document.getElementById('publicProfileModal').classList.remove('active');
         renderGames(loadedGames);
     });
 
