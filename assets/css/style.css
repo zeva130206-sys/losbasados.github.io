@@ -622,6 +622,128 @@ html, body {
     margin-bottom: 15px;
 }
 
+/* RED SOCIAL PERFIL ESTILOS */
+.social-profile-modal {
+    max-width: 600px;
+}
+
+.social-profile-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    border-bottom: 1px solid #222234;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.social-tab-btn {
+    background: #12121a;
+    border: 1px solid #28283a;
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.social-tab-btn.active {
+    background: var(--neon-red);
+    color: #fff;
+    border-color: var(--neon-red);
+}
+
+.social-tab-content {
+    display: none;
+}
+
+.social-tab-content.active {
+    display: block;
+}
+
+.post-screenshot-box {
+    background: #09090e;
+    border: 1px solid #222234;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.post-screenshot-box input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: #14141d;
+    border: 1px solid #282836;
+    border-radius: 6px;
+    color: #fff;
+    margin-bottom: 8px;
+    outline: none;
+}
+
+.upload-shot-row input[type="file"] {
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.screenshots-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.shot-card-item {
+    background: #09090e;
+    border: 1px solid #1f1f2e;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.shot-card-item img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+}
+
+.shot-card-info {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    text-align: left;
+}
+
+.friends-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.friend-item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #09090e;
+    border: 1px solid #1f1f2e;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.friend-item-row img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--neon-red);
+}
+
 .section-title {
     font-family: var(--font-head);
     margin-bottom: 15px;
