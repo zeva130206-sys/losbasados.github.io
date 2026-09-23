@@ -189,18 +189,76 @@
         </div>
     </div>
 
-    <!-- MODAL PERFIL PÚBLICO -->
+    <!-- MODAL PERFIL PÚBLICO / RED SOCIAL COMPLETA -->
     <div class="modal-overlay" id="publicProfileModal">
-        <div class="modal-box text-center">
+        <div class="modal-box text-center social-profile-modal">
             <button class="modal-close" id="closePublicProfileModal">&times;</button>
+            
             <div class="profile-preview-box">
                 <img id="publicAvatarImg" src="" alt="Avatar">
             </div>
-            <h3 id="publicName" style="color: var(--neon-red); font-family: var(--font-head); margin-bottom: 5px;">-</h3>
-            <p id="publicRole" style="color: #00ff80; font-weight: bold; font-size: 0.85rem; margin-bottom: 15px;">Miembro Basado</p>
-            <div style="background:#09090e; padding:12px; border-radius:8px; border:1px solid #1f1f2e;">
-                <p style="font-size:0.85rem; color:#aaa;">Registrado en la comunidad de LOS BASADOS.</p>
+            <h3 id="publicName" style="color: var(--neon-red); font-family: var(--font-head); margin-bottom: 2px;">-</h3>
+            <p id="publicRole" style="color: #00ff80; font-weight: bold; font-size: 0.85rem; margin-bottom: 8px;">Miembro Basado</p>
+
+            <!-- ACCIONES SOCIALES / EDITAR PERFIL -->
+            <div id="profileActionButtons" class="profile-action-buttons" style="margin-bottom:12px; display:flex; justify-content:center; gap:8px;">
+                <button type="button" id="btnEditProfileSettings" class="btn-secondary btn-sm hidden" onclick="openProfileModal()"><i class="fas fa-cog"></i> Configurar Perfil</button>
+                <button type="button" id="btnAddFriend" class="btn-primary btn-sm hidden" onclick="toggleAddFriend()"><i class="fas fa-user-plus"></i> Añadir Amigo</button>
+                <button type="button" id="btnOpenPrivateChat" class="btn-secondary btn-sm hidden" onclick="openPrivateChatFromProfile()"><i class="fas fa-paper-plane"></i> Mensaje Privado</button>
             </div>
+
+            <div class="social-profile-tabs">
+                <button class="social-tab-btn active" id="btnTabScreenshots" onclick="switchSocialProfileTab('screenshots')"><i class="fas fa-images"></i> Muro / Capturas</button>
+                <button class="social-tab-btn" id="btnTabFriends" onclick="switchSocialProfileTab('friends')"><i class="fas fa-user-friends"></i> Amigos (<span id="profileFriendsCount">0</span>)</button>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 1: CAPTURAS / MURO -->
+            <div id="socialScreenshotsContent" class="social-tab-content active">
+                <div id="postScreenshotBox" class="post-screenshot-box hidden">
+                    <form id="formPostScreenshot">
+                        <input type="text" id="shotTitle" placeholder="¿Qué estás jugando o pensando hoy?..." required>
+                        <div class="upload-shot-row">
+                            <input type="file" id="shotFileInput" accept="image/png, image/jpeg, image/webp">
+                            <small style="color:#aaa; display:block; font-size:0.75rem;">Opcional: Adjuntar captura (Máx 1 MB - Autocomprimida)</small>
+                        </div>
+                        <button type="submit" class="btn-primary btn-sm full-width" style="margin-top:8px;"><i class="fas fa-cloud-upload-alt"></i> PUBLICAR EN EL MURO</button>
+                    </form>
+                </div>
+
+                <div class="screenshots-feed-grid" id="screenshotsFeedGrid">
+                    <!-- Publicaciones dinámicas -->
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 2: AMIGOS -->
+            <div id="socialFriendsContent" class="social-tab-content hidden">
+                <div class="friends-list-container" id="friendsListContainer">
+                    <!-- Lista de amigos -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CHAT PRIVADO (MENSAJES DIRECTOS) -->
+    <div class="modal-overlay" id="privateChatModal">
+        <div class="modal-box">
+            <button class="modal-close" id="closePrivateChatModal">&times;</button>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid #222; padding-bottom:10px;">
+                <img id="privateChatTargetAvatar" src="" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--neon-red);">
+                <div>
+                    <h3 id="privateChatTargetName" style="font-size:1rem; color:#fff; font-family:var(--font-head);">-</h3>
+                    <small style="color:#00ff80; font-size:0.75rem;">Chat Privado Seguro</small>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="privateChatMessages" style="height:280px; background:#09090e; padding:10px; border-radius:8px; border:1px solid #1f1f2a; margin-bottom:10px;">
+                <!-- Mensajes directos -->
+            </div>
+
+            <form id="formPrivateChat" class="chat-input-area">
+                <input type="text" id="privateChatInput" placeholder="Escribe un mensaje privado..." required>
+                <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+            </form>
         </div>
     </div>
 
@@ -216,7 +274,6 @@
                 <button class="tab-btn active" id="tabAdminGames" onclick="switchAdminTab('games')">🎮 Juegos</button>
                 <button class="tab-btn" id="tabAdminNews" onclick="switchAdminTab('news')">📰 Noticias</button>
                 <button class="tab-btn" id="tabAdminGenres" onclick="switchAdminTab('genres')">🏷️ Categorías</button>
-
                 <button class="tab-btn" id="tabAdminSocial" onclick="switchAdminTab('social')">🌐 Redes Sociales</button>
                 <button class="tab-btn" id="tabAdminReports" onclick="switchAdminTab('reports')">⚠️ Reportes (<span id="reportsBadgeCount">0</span>)</button>
             </div>
@@ -465,7 +522,7 @@
         </div>
     </div>
 
-    <!-- MODAL PERFIL DE USUARIO -->
+    <!-- MODAL CONFIGURACIÓN / EDITAR PERFIL DE USUARIO -->
     <div class="modal-overlay" id="profileModal">
         <div class="modal-box">
             <button class="modal-close" id="closeProfileModal">&times;</button>
