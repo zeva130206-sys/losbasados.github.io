@@ -49,9 +49,10 @@
                 <span class="online-badge" id="onlineCount">0</span>
             </button>
             
-            <!-- NOTIFICACIONES -->
-            <button class="icon-btn" id="btnNotif" title="Suscribir Notificaciones">
+            <!-- NOTIFICACIONES (CENTRO DE ALERTAS) -->
+            <button class="icon-btn" id="btnNotif" title="Notificaciones & Alertas">
                 <i class="fas fa-bell"></i>
+                <span class="online-badge hidden" id="notifBadgeCount" style="background:var(--neon-red); color:#fff;">0</span>
             </button>
             
             <!-- PERFIL / INGRESO -->
@@ -233,13 +234,13 @@
             <!-- CONTENIDO PESTAÑA 2: AMIGOS -->
             <div id="socialFriendsContent" class="social-tab-content hidden">
                 <div class="friends-list-container" id="friendsListContainer">
-                    <!-- Lista de amigos -->
+                    <!-- Lista de amigos con estado Online/Offline -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE CHAT PRIVADO (MENSAJES DIRECTOS) -->
+    <!-- MODAL DE CHAT PRIVADO (MENSAJES DIRECTOS CON HERRAMIENTAS INTERACTIVAS +) -->
     <div class="modal-overlay" id="privateChatModal">
         <div class="modal-box">
             <button class="modal-close" id="closePrivateChatModal">&times;</button>
@@ -255,10 +256,58 @@
                 <!-- Mensajes directos -->
             </div>
 
-            <form id="formPrivateChat" class="chat-input-area">
-                <input type="text" id="privateChatInput" placeholder="Escribe un mensaje privado..." required>
-                <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
-            </form>
+            <div class="chat-input-wrapper">
+                <form id="formPrivateChat" class="chat-input-area">
+                    <input type="text" id="privateChatInput" placeholder="Escribe un mensaje privado..." required autocomplete="off">
+                    
+                    <!-- BOTÓN MÁS (+) EN DM -->
+                    <div class="chat-more-container">
+                        <button type="button" class="btn-more-chat" id="privateChatMoreBtn" title="Adjuntar archivo, GIF o Emoji">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        
+                        <div class="chat-more-menu" id="privateChatMoreMenu">
+                            <button type="button" id="btnPrivateMenuImage"><i class="fas fa-image"></i> Subir Imagen</button>
+                            <button type="button" id="btnPrivateMenuGiphy"><i class="fas fa-film"></i> Buscar GIF (Giphy)</button>
+                            <button type="button" id="btnPrivateMenuEmoji"><i class="far fa-smile"></i> Emojis</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                </form>
+
+                <input type="file" id="privateChatImageInput" accept="image/*" style="display: none;">
+
+                <!-- POPOVER GIPHY Y EMOJI PARA DM -->
+                <div class="chat-popover hidden" id="privateGiphyPopover">
+                    <div class="popover-header">
+                        <span><i class="fas fa-film"></i> GIFs de Giphy (DM)</span>
+                        <button type="button" class="popover-close" id="closePrivateGiphyPopover">&times;</button>
+                    </div>
+                    <div class="popover-search">
+                        <input type="text" id="privateGiphySearchInput" placeholder="Buscar GIF...">
+                    </div>
+                    <div class="giphy-results-grid" id="privateGiphyResultsGrid"></div>
+                </div>
+
+                <div class="chat-popover hidden" id="privateEmojiPopover">
+                    <div class="popover-header">
+                        <span><i class="far fa-smile"></i> Seleccionar Emoji</span>
+                        <button type="button" class="popover-close" id="closePrivateEmojiPopover">&times;</button>
+                    </div>
+                    <div class="emoji-categories" id="privateEmojiCategories">
+                        <button type="button" data-cat="smileys" class="active">😀</button>
+                        <button type="button" data-cat="people">👋</button>
+                        <button type="button" data-cat="animals">🐻</button>
+                        <button type="button" data-cat="food">🍔</button>
+                        <button type="button" data-cat="activities">⚽</button>
+                        <button type="button" data-cat="travel">🚗</button>
+                        <button type="button" data-cat="objects">💡</button>
+                        <button type="button" data-cat="symbols">❤️</button>
+                    </div>
+                    <div class="emoji-grid" id="privateEmojiGrid"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -309,11 +358,15 @@
                         </div>
                     </div>
 
+                    <!-- SUBIR FOTO DE JUEGO CON COMPRESIÓN MÁX 1MB -->
+                    <div class="form-group" style="background:#09090e; padding:10px; border-radius:8px; border:1px solid #222234;">
+                        <label><i class="fas fa-image" style="color:var(--neon-red);"></i> Imagen de Portada (Subir o URL)</label>
+                        <input type="file" id="adminImageFileInput" accept="image/png, image/jpeg, image/webp" style="margin-bottom:6px; font-size:0.8rem; color:#aaa;">
+                        <small style="color:#888; display:block; margin-bottom:6px;">Subir desde PC/Móvil (Auto-compresión a &lt; 1MB)</small>
+                        <input type="text" id="adminImage" placeholder="assets/img/juego.png o URL externa" required>
+                    </div>
+
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Ruta de Imagen (URL / Local)</label>
-                            <input type="text" id="adminImage" placeholder="assets/img/juego.png" required>
-                        </div>
                         <div class="form-group">
                             <label>Restricción de Edad</label>
                             <select id="adminAgeRestricted" class="custom-select" required>
@@ -321,9 +374,6 @@
                                 <option value="true">Solo Mayores de 18 Años (+18)</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group">
                             <label>Estado Online / Multiplayer</label>
                             <select id="adminOnlineStatus" class="custom-select">
@@ -331,13 +381,14 @@
                                 <option value="offline">🔴 Solo Modo Offline / Singleplayer</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Soporte de Mando / Gamepad</label>
-                            <select id="adminGamepadStatus" class="custom-select">
-                                <option value="true">🎮 Compatible con Mando / Gamepad</option>
-                                <option value="false">⌨️ Teclado y Ratón / Touch</option>
-                            </select>
-                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Soporte de Mando / Gamepad</label>
+                        <select id="adminGamepadStatus" class="custom-select">
+                            <option value="true">🎮 Compatible con Mando / Gamepad</option>
+                            <option value="false">⌨️ Teclado y Ratón / Touch</option>
+                        </select>
                     </div>
 
                     <!-- SECCIÓN APARTE PARA FIX ONLINE -->
@@ -582,7 +633,7 @@
                 <span class="online-indicator"><i class="fas fa-circle"></i> <span id="onlineCountModal">0</span> Conectados</span>
             </div>
 
-            <!-- CONTENIDO PESTAÑA CHAT -->
+            <!-- CONTENIDO PESTAÑA CHAT GENERAL -->
             <div id="forumChatContent" class="forum-layout">
                 <div class="online-users-sidebar">
                     <h4>Conectados</h4>
@@ -592,10 +643,59 @@
                 <div class="chat-container">
                     <div class="chat-messages" id="chatMessages"></div>
 
-                    <form id="formChat" class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Escribe un mensaje..." required>
-                        <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
-                    </form>
+                    <div class="chat-input-wrapper">
+                        <form id="formChat" class="chat-input-area">
+                            <input type="text" id="chatInput" placeholder="Escribe un mensaje..." required autocomplete="off">
+                            
+                            <!-- BOTÓN DESPLEGABLE (+) -->
+                            <div class="chat-more-container">
+                                <button type="button" class="btn-more-chat" id="chatMoreBtn" title="Adjuntar archivo, GIF o Emoji">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                
+                                <div class="chat-more-menu" id="chatMoreMenu">
+                                    <button type="button" id="btnMenuImage"><i class="fas fa-image"></i> Subir Imagen</button>
+                                    <button type="button" id="btnMenuGiphy"><i class="fas fa-film"></i> Buscar GIF (Giphy)</button>
+                                    <button type="button" id="btnMenuEmoji"><i class="far fa-smile"></i> Emojis</button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                        </form>
+
+                        <input type="file" id="chatImageInput" accept="image/*" style="display: none;">
+
+                        <!-- POPOVER BUSCADOR GIPHY -->
+                        <div class="chat-popover hidden" id="giphyPopover">
+                            <div class="popover-header">
+                                <span><i class="fas fa-film"></i> GIFs de Giphy</span>
+                                <button type="button" class="popover-close" id="closeGiphyPopover">&times;</button>
+                            </div>
+                            <div class="popover-search">
+                                <input type="text" id="giphySearchInput" placeholder="Buscar GIF...">
+                            </div>
+                            <div class="giphy-results-grid" id="giphyResultsGrid"></div>
+                        </div>
+
+                        <!-- POPOVER SELECCIÓN EMOJIS -->
+                        <div class="chat-popover hidden" id="emojiPopover">
+                            <div class="popover-header">
+                                <span><i class="far fa-smile"></i> Seleccionar Emoji</span>
+                                <button type="button" class="popover-close" id="closeEmojiPopover">&times;</button>
+                            </div>
+                            <div class="emoji-categories" id="emojiCategories">
+                                <button type="button" data-cat="smileys" class="active">😀</button>
+                                <button type="button" data-cat="people">👋</button>
+                                <button type="button" data-cat="animals">🐻</button>
+                                <button type="button" data-cat="food">🍔</button>
+                                <button type="button" data-cat="activities">⚽</button>
+                                <button type="button" data-cat="travel">🚗</button>
+                                <button type="button" data-cat="objects">💡</button>
+                                <button type="button" data-cat="symbols">❤️</button>
+                            </div>
+                            <div class="emoji-grid" id="emojiGrid"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -621,20 +721,25 @@
         </div>
     </div>
 
-    <!-- MODAL NOTIFICACIONES -->
+    <!-- MODAL CENTRO DE NOTIFICACIONES Y ALERTAS EN TIEMPO REAL -->
     <div class="modal-overlay" id="notifModal">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width:500px;">
             <button class="modal-close" id="closeNotifModal">&times;</button>
-            <h3><i class="fas fa-bell"></i> Suscribirse a Alertas</h3>
-            <p style="color: #aaa; margin: 10px 0 20px 0; font-size: 0.9rem;">
-                Recibe un aviso al correo cuando subamos un juego nuevo o una actualización de Port.
-            </p>
+            <h3 style="color:var(--neon-red); font-family:var(--font-head); margin-bottom:12px;">
+                <i class="fas fa-bell"></i> Centro de Notificaciones
+            </h3>
+            
+            <div class="notif-feed-container" id="notifFeedContainer" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; margin-bottom:15px; background:#08080d; padding:10px; border-radius:8px; border:1px solid #1f1f2e;">
+                <!-- Feed de notificaciones en vivo -->
+            </div>
+
+            <hr style="border:0; border-top:1px solid #222; margin:15px 0;">
+            <h4 style="color:#fff; font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-envelope"></i> Suscribirse a Alertas por Correo</h4>
             <form id="formNotif">
                 <div class="form-group">
-                    <label>Tu Correo Electrónico</label>
                     <input type="email" id="notifEmail" placeholder="tu@correo.com" required>
                 </div>
-                <button type="submit" class="btn-primary full-width">ACTIVAR NOTIFICACIONES</button>
+                <button type="submit" class="btn-primary full-width btn-sm">ACTIVAR SUSCRIPCIÓN</button>
             </form>
         </div>
     </div>
