@@ -28,35 +28,23 @@ const friendsRef = db.ref('user_friends');
 const privateChatRef = db.ref('private_messages');
 const notificationsRef = db.ref('user_notifications');
 
-// CLAVE API OFICIAL Y ESTABLE DE GIPHY CON FALLBACK HTTPS
-const GIPHY_API_KEY = 'gldaR43aR3G2XQ2dG4Q5N39N0Z3Q2dG4';
+// CLAVE API OFICIAL Y ESTABLE DE GIPHY CON FALLBACK
+const GIPHY_API_KEY = 'DJB4CZoGHwHHM7q9EKUr8fstYUxpBwFw';
 
 // DICCIONARIO COMPLETO DE EMOJIS POR CATEGORÍA
 const EMOJI_DATA = {
     smileys: ["😀","😃","😄","😁","😆","😅","😂","🤣","🥲","☺️","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🥸","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕"],
-    people: ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦾","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","骨","👀","👁️","舌","👄"],
-    animals: ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🪱","🐛","🦋","🐌","🐞","ANT","🪰","🪲","🪳","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","lobster","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","zebra","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","giraffe","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","deer","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🐓","turkey","🦤","🦚","parrot","🦩","🕊️","rabbit","🦝","🦨","🦡","beaver","otter","sloth","hedgehog"],
-    food: ["🍏","🍎","pear","🍊","🍋","banana","watermelon","grapes","strawberry","blueberry","melon","cherries","peach","mango","pineapple","coconut","kiwi","tomato","eggplant","avocado","broccoli","leafy green","cucumber","hot pepper","bell pepper","corn","carrot","olive","garlic","onion","potato","sweet potato","croissant","bagel","bread","baguette","pretzel","cheese","egg","cooking","butter","pancake","waffle","bacon","steak","poultry","meat","bone","hotdog","burger","fries","pizza","flatbread","sandwich","taco","burrito","salad","paella","fondue","canned","spaghetti","ramen","stew","curry","sushi","bento","dumpling","oyster","fried shrimp","rice ball","rice","rice cracker","fish cake","fortune cookie","moon cake","dango","shaved ice","ice cream","soft ice cream","pie","cupcake","cake","birthday cake","custard","lollipop","candy","chocolate","popcorn","donut","cookie","chestnut","peanuts","honey"],
-    activities: ["⚽","🏀","🏈","⚾","🥎","tennis","volleyball","rugby","frisbee","8ball","yo-yo","ping-pong","badminton","hockey","field hockey","lacrosse","cricket","boomerang","goal","golf","kite","bow and arrow","fishing","diving","boxing","martial arts","running shirt","skateboard","roller skate","sled","ice skate","curling stone","skis","skier","snowboarder","paraglider","weightlifter","wrestlers","gymnast","basketball player","fencer","handball player","golfing","horse racing","yoga","surfer","swimmer","water polo","rowboat","climbing","mountain biker","biker","trophy","medal","2nd medal","3rd medal","medal","rosette","ticket","tickets","circus","juggling","theater","art","clapper","microphone","headphones","musical score","musical note","notes","drum","saxophone","trumpet","guitar","banjo","violin","game die","chess","darts","bowling","gamepad","slot machine","puzzle"],
-    travel: ["🚗","taxi","SUV","bus","wheelchair","rickshaw","racing car","police car","ambulance","fire engine","minibus","truck","articulated lorry","tractor","white cane","manual wheelchair","motorized wheelchair","bicycle","scooter","motor scooter","motorcycle","auto rickshaw","police light","oncoming police car","oncoming bus","oncoming automobile","oncoming taxi","aerial tramway","mountain cableway","monorail","railway car","tram","paraglider","airplane","flight departure","flight arrival","small airplane","satellite","rocket","flying saucer","helicopter","canoe","sailboat","speedboat","motorboat","passenger ship","gear","anchor","fuel pump","construction","traffic light","vertical traffic light","map","moai","statue of liberty","tokyo tower","castle","japanese castle","stadium","ferris wheel","roller coaster","carousel horse"],
-    objects: ["⌚","phone","calling","laptop","keyboard","desktop","printer","computer mouse","trackball","joystick","clamp","minidisc","floppy disk","cd","dvd","videotape","camera","flash camera","video camera","movie camera","projector","film frames","telephone","receiver","pager","fax","tv","radio","microphone","fader","control knobs","compass","stopwatch","timer","alarm clock","clock","light bulb","flashlight","red lantern","diya","candle","fire extinguisher","oil drum","money bag","dollar","yen","euro","pound","coin","money bag","credit card","gem","balance scale","toolbox","wrench","hammer","hammer and pick","tools","pick","axe","plug","battery"],
-    symbols: ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","☮️","✝️","☪️","🕉️","☸️","✡️","🔯","🕎","☯️","☦️","🛐","⛎","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","atom","accept","radioactive","biohazard","mobile off","vibration","japanese button","japanese no fee","japanese application","japanese open","japanese monthly","japanese vs","white flower","japanese free","japanese secret","japanese congrats","japanese pass","japanese full","japanese forbidden","A button","B button","AB button","CL button","O button","sweat drops","dash","dizzy","speech bubble","right anger bubble","thought bubble","sleepy"]
+    people: ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦾","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","🦴","👀","👁️","👅","👄"],
+    animals: ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🪱","🐛","🦋","🐌","🐞","🐜","🪰","🪲","🪳","🦟","🦗","🕷️","🦂","🐢","🐍","蜥","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","鹿","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🐓","🦃","🦤","🦚","🦜","🦩","🕊️","🐇","🦝","🦨","🦡","🦫","🦦","🦥","🦔"],
+    food: ["🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🫒","🧄","🧅","🥔","🍠","🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🦴","🌭","🍔","🍟","🍕","🫓","🥪","🌮","🌯","🥗","🥘","🫕","🥫","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🦪","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯"],
+    activities: ["⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🏒","🏑","🥍","🏏","🪃","🥅","⛳","🪁","🏹","🎣","🤿","🥊","🥋","🎽","🛹","🛼","🛷","⛸️","🥌","🎿","⛷️","🏂","🪂","🏋️","🤼","🤸","⛹️","🤺","🤾","🏌️","🏇","🧘","🏄","🏊","🤽","🚣","🧗","🚵","🚴","🏆","🥇","🥈","🥉","🏅","🎖️","🎟️","🎫","🎪","🤹","🎭","🎨","🎬","🎤","🎧","🎼","🎵","🎶","🥁","🎷","🎺","🎸","🪕","🎻","🎲","♟️","🎯","🎳","🎮","🎰","🧩"],
+    travel: ["🚗","🚕","🚙","🚌","🦽","🛺","🏎️","🚓","🚑","🚒","🚐","🛻","🚚","🚛","🚜","🦯","🦼","🛴","🚲","🛵","🏍️","🛺","🚨","🚔","🚍","🚘","🚖","🚡","🚠","🚝","🚋","🚎","✈️","🛫","🛬","🛩️","🛰️","🚀","🛸","🚁","🛶","⛵","🚤","🛥️","🛳️","⚙️","⚓","⛽","🚧","🚦","🚥","🗺️","🗿","🗽","🗼","🏰","🏯","🏟️","🎡","🎢","🎠"],
+    objects: ["⌚","📱","📲","💻","⌨️","🖥️","🖨️","🖱️","🖲️","🕹️","🗜️","💽","💾","💿","📀","📼","📷","📸","📹","🎥","📽️","🎞️","📞","☎️","📟","📠","📺","📻","🎙️","🎚️","🎛️","🧭","⏱️","⏲️","⏰","🕰️","💡","🔦","🏮","🪔","🕯️","🧯","🛢️","💸","💵","💴","💶","💷","🪙","💰","💳","💎","⚖️","🧰","🔧","🔨","⚒️","🛠️","⛏️","🪓","🔌","🔋"],
+    symbols: ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","☮️","✝️","☪️","🕉️","☸️","✡️","🔯","🕎","☯️","☦️","🛐","⛎","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","⚛️","🉑","☢️","☣️","📴","📳","🈶","🈚","🈸","🈺","🈷️","🆚","💮","🉐","秘","祝","㊗️","㊎","㊍","⛔","🅰️","🅱️","🆎","🆑","🅾️","💦","💨","💫","💬","🗯️","💭","💤"]
 };
 
 // IMAGEN POR DEFECTO PARA FALLBACKS
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
-
-// PROTECCIÓN ANTI-INSPECCIÓN / CTRL+U / F12
-document.addEventListener('contextmenu', (e) => e.preventDefault());
-document.addEventListener('keydown', (e) => {
-    if (
-        e.key === 'F12' ||
-        (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j'))
-    ) {
-        e.preventDefault();
-    }
-});
 
 // AUDIO SYNTHWAVE / LO-FI DE FONDO
 const bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3');
@@ -141,6 +129,7 @@ let loadedSocialLinks = defaultSocialLinks;
 let currentOnlineList = [];
 let loadedScreenshots = {};
 let loadedFriendsData = {};
+let loadedRegisteredUsers = {}; // Cache global de usuarios para renderizado de avatares de amigos
 let loadedUserNotifications = [];
 let activeProfileViewName = "";
 let activePrivateChatPartner = null;
@@ -495,22 +484,24 @@ function renderEmojiCategory(cat, gridId, inputId) {
     });
 }
 
+// BÚSQUEDA ROBUSTA DE GIPHY CON FALLBACK DE RESPUESTA
 function fetchGiphyGifs(query, targetGridId, onSelectCallback) {
     const grid = document.getElementById(targetGridId);
     if (!grid) return;
     grid.innerHTML = '<p style="color:#aaa; font-size:0.8rem; grid-column:1/-1;">Cargando GIFs...</p>';
 
-    const url = (query === 'trending' || !query)
-        ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`
-        : `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12`;
+    const isSearch = query && query !== 'trending';
+    const endpoint = isSearch ? 'search' : 'trending';
+    const queryParam = isSearch ? `&q=${encodeURIComponent(query)}` : '';
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${GIPHY_API_KEY}&limit=16${queryParam}`;
 
     fetch(url)
         .then(res => res.json())
         .then(data => {
             grid.innerHTML = '';
-            if (data.data && data.data.length > 0) {
+            if (data && data.data && data.data.length > 0) {
                 data.data.forEach(gif => {
-                    const gifUrl = gif.images.fixed_height.url || gif.images.original.url;
+                    const gifUrl = gif.images && gif.images.fixed_height ? gif.images.fixed_height.url : gif.images.original.url;
                     const img = document.createElement('img');
                     img.src = gifUrl;
                     img.addEventListener('click', () => {
@@ -521,8 +512,24 @@ function fetchGiphyGifs(query, targetGridId, onSelectCallback) {
             } else {
                 grid.innerHTML = '<p style="color:#aaa; font-size:0.8rem; grid-column:1/-1;">No se encontraron GIFs.</p>';
             }
-        }).catch(() => {
-            grid.innerHTML = '<p style="color:#ff4444; font-size:0.8rem; grid-column:1/-1;">Error al cargar GIFs de Giphy.</p>';
+        })
+        .catch(err => {
+            console.warn("Giphy API Key principal falló, intentando respaldo...", err);
+            // Fallback con GIFs Populares Estáticos / Públicos si falla la API
+            grid.innerHTML = '';
+            const fallbackGifs = [
+                "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3E1azNnYnR5dTRiNzIxbTFtdjVpZzRqNDJ3MjdvYndud3c1cjZtOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L1Q87I1i8xM1m/giphy.gif",
+                "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzRvbG5tZ3Y1eGgyZHJscTZmNG9ycnEzaTR3N3A4OGdqejRpd3dveCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ju7l5y9osyymQ/giphy.gif",
+                "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTV6cm41eXF5MGlwZGVydnA2OHBnNHRiaHF0ZXkxdnV0c3V4NG1meCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/d48u3oS7PqC0245S/giphy.gif"
+            ];
+            fallbackGifs.forEach(gifUrl => {
+                const img = document.createElement('img');
+                img.src = gifUrl;
+                img.addEventListener('click', () => {
+                    if (onSelectCallback) onSelectCallback(gifUrl);
+                });
+                grid.appendChild(img);
+            });
         });
 }
 
@@ -579,6 +586,14 @@ function compressAndSendChatImage(file, targetFirebaseRef, isDM = false) {
 
 // FIREBASE EN TIEMPO REAL
 function initRealtimeFirebase() {
+    // Sincronización continua de usuarios para avatares en lista de amigos
+    usersRef.on('value', (snapshot) => {
+        loadedRegisteredUsers = snapshot.val() || {};
+        if (activeProfileViewName) {
+            renderFriendsList(activeProfileViewName);
+        }
+    });
+
     // 1. Juegos
     gamesRef.on('value', (snapshot) => {
         const data = snapshot.val();
@@ -903,6 +918,7 @@ function renderUserScreenshots(username) {
     `).join('');
 }
 
+// RENDERIZADO DE AMIGOS CORREGIDO Y CONECTADO A BASE DE DATOS
 function renderFriendsList(username) {
     const container = document.getElementById('friendsListContainer');
     const countBadge = document.getElementById('profileFriendsCount');
@@ -920,10 +936,17 @@ function renderFriendsList(username) {
 
     container.innerHTML = userFriends.map(friendName => {
         const isOnline = onlineUserNames.includes(friendName);
+        // Buscar el avatar del usuario registrado
+        let avatarUrl = "https://api.dicebear.com/7.x/bottts/svg?seed=" + friendName;
+        if (loadedRegisteredUsers) {
+            const foundUser = Object.values(loadedRegisteredUsers).find(u => u.name === friendName);
+            if (foundUser && foundUser.avatar) avatarUrl = foundUser.avatar;
+        }
+
         return `
             <div class="friend-item-row">
-                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openPublicProfile('${friendName}', '')">
-                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${friendName}">
+                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openPublicProfile('${friendName}', '${avatarUrl}')">
+                    <img src="${avatarUrl}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/bottts/svg?seed=${friendName}';">
                     <div>
                         <strong style="color:#fff; font-size:0.9rem; display:block;">${friendName}</strong>
                         <span class="status-dot-text ${isOnline ? 'online' : 'offline'}">
@@ -947,7 +970,13 @@ window.openPrivateChatWith = function(targetName) {
     activePrivateChatPartner = targetName;
 
     document.getElementById('privateChatTargetName').textContent = targetName;
-    document.getElementById('privateChatTargetAvatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${targetName}`;
+    
+    let partnerAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${targetName}`;
+    if (loadedRegisteredUsers) {
+        const found = Object.values(loadedRegisteredUsers).find(u => u.name === targetName);
+        if (found && found.avatar) partnerAvatar = found.avatar;
+    }
+    document.getElementById('privateChatTargetAvatar').src = partnerAvatar;
 
     const chatId = [currentUser.name, targetName].sort().join('_CHAT_');
 
