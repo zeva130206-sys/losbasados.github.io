@@ -26,6 +26,22 @@ const socialRef = db.ref('social_links');
 const userScreenshotsRef = db.ref('screenshots');
 const friendsRef = db.ref('user_friends');
 const privateChatRef = db.ref('private_messages');
+const notificationsRef = db.ref('user_notifications');
+
+// CLAVE API OFICIAL Y ESTABLE DE GIPHY CON FALLBACK HTTPS
+const GIPHY_API_KEY = 'gldaR43aR3G2XQ2dG4Q5N39N0Z3Q2dG4';
+
+// DICCIONARIO COMPLETO DE EMOJIS POR CATEGORÍA
+const EMOJI_DATA = {
+    smileys: ["😀","😃","😄","😁","😆","😅","😂","🤣","🥲","☺️","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🥸","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕"],
+    people: ["👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦾","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","骨","👀","👁️","舌","👄"],
+    animals: ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🪱","🐛","🦋","🐌","🐞","ANT","🪰","🪲","🪳","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","lobster","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","zebra","🦍","🦧","🦣","🐘","🦛","🦏","🐪","🐫","giraffe","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","deer","🐕","🐩","🦮","🐕‍🦺","🐈","🐈‍⬛","🐓","turkey","🦤","🦚","parrot","🦩","🕊️","rabbit","🦝","🦨","🦡","beaver","otter","sloth","hedgehog"],
+    food: ["🍏","🍎","pear","🍊","🍋","banana","watermelon","grapes","strawberry","blueberry","melon","cherries","peach","mango","pineapple","coconut","kiwi","tomato","eggplant","avocado","broccoli","leafy green","cucumber","hot pepper","bell pepper","corn","carrot","olive","garlic","onion","potato","sweet potato","croissant","bagel","bread","baguette","pretzel","cheese","egg","cooking","butter","pancake","waffle","bacon","steak","poultry","meat","bone","hotdog","burger","fries","pizza","flatbread","sandwich","taco","burrito","salad","paella","fondue","canned","spaghetti","ramen","stew","curry","sushi","bento","dumpling","oyster","fried shrimp","rice ball","rice","rice cracker","fish cake","fortune cookie","moon cake","dango","shaved ice","ice cream","soft ice cream","pie","cupcake","cake","birthday cake","custard","lollipop","candy","chocolate","popcorn","donut","cookie","chestnut","peanuts","honey"],
+    activities: ["⚽","🏀","🏈","⚾","🥎","tennis","volleyball","rugby","frisbee","8ball","yo-yo","ping-pong","badminton","hockey","field hockey","lacrosse","cricket","boomerang","goal","golf","kite","bow and arrow","fishing","diving","boxing","martial arts","running shirt","skateboard","roller skate","sled","ice skate","curling stone","skis","skier","snowboarder","paraglider","weightlifter","wrestlers","gymnast","basketball player","fencer","handball player","golfing","horse racing","yoga","surfer","swimmer","water polo","rowboat","climbing","mountain biker","biker","trophy","medal","2nd medal","3rd medal","medal","rosette","ticket","tickets","circus","juggling","theater","art","clapper","microphone","headphones","musical score","musical note","notes","drum","saxophone","trumpet","guitar","banjo","violin","game die","chess","darts","bowling","gamepad","slot machine","puzzle"],
+    travel: ["🚗","taxi","SUV","bus","wheelchair","rickshaw","racing car","police car","ambulance","fire engine","minibus","truck","articulated lorry","tractor","white cane","manual wheelchair","motorized wheelchair","bicycle","scooter","motor scooter","motorcycle","auto rickshaw","police light","oncoming police car","oncoming bus","oncoming automobile","oncoming taxi","aerial tramway","mountain cableway","monorail","railway car","tram","paraglider","airplane","flight departure","flight arrival","small airplane","satellite","rocket","flying saucer","helicopter","canoe","sailboat","speedboat","motorboat","passenger ship","gear","anchor","fuel pump","construction","traffic light","vertical traffic light","map","moai","statue of liberty","tokyo tower","castle","japanese castle","stadium","ferris wheel","roller coaster","carousel horse"],
+    objects: ["⌚","phone","calling","laptop","keyboard","desktop","printer","computer mouse","trackball","joystick","clamp","minidisc","floppy disk","cd","dvd","videotape","camera","flash camera","video camera","movie camera","projector","film frames","telephone","receiver","pager","fax","tv","radio","microphone","fader","control knobs","compass","stopwatch","timer","alarm clock","clock","light bulb","flashlight","red lantern","diya","candle","fire extinguisher","oil drum","money bag","dollar","yen","euro","pound","coin","money bag","credit card","gem","balance scale","toolbox","wrench","hammer","hammer and pick","tools","pick","axe","plug","battery"],
+    symbols: ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","☮️","✝️","☪️","🕉️","☸️","✡️","🔯","🕎","☯️","☦️","🛐","⛎","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","atom","accept","radioactive","biohazard","mobile off","vibration","japanese button","japanese no fee","japanese application","japanese open","japanese monthly","japanese vs","white flower","japanese free","japanese secret","japanese congrats","japanese pass","japanese full","japanese forbidden","A button","B button","AB button","CL button","O button","sweat drops","dash","dizzy","speech bubble","right anger bubble","thought bubble","sleepy"]
+};
 
 // IMAGEN POR DEFECTO PARA FALLBACKS
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400x225/0f0f14/ff003c?text=Imagen+No+Disponible';
@@ -125,6 +141,7 @@ let loadedSocialLinks = defaultSocialLinks;
 let currentOnlineList = [];
 let loadedScreenshots = {};
 let loadedFriendsData = {};
+let loadedUserNotifications = [];
 let activeProfileViewName = "";
 let activePrivateChatPartner = null;
 let privateChatListener = null;
@@ -242,6 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', detectDevice);
     updateUserUI();
     setupEventListeners();
+    setupChatInteractiveControls();
+    setupPrivateChatInteractiveControls();
     initRealtimeFirebase();
     updateTwitchEmbedParentDomain();
     setupFilterToggle();
@@ -282,13 +301,293 @@ function updateTwitchEmbedParentDomain() {
     }
 }
 
+// MENÚ DESPLEGABLE DE CHAT GENERAL (+)
+function setupChatInteractiveControls() {
+    const moreBtn = document.getElementById('chatMoreBtn');
+    const moreMenu = document.getElementById('chatMoreMenu');
+    const imageInput = document.getElementById('chatImageInput');
+
+    const emojiPopover = document.getElementById('emojiPopover');
+    const giphyPopover = document.getElementById('giphyPopover');
+
+    if (!moreBtn || !moreMenu) return;
+
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreMenu.classList.toggle('active');
+        moreBtn.classList.toggle('active');
+        emojiPopover.classList.add('hidden');
+        giphyPopover.classList.add('hidden');
+    });
+
+    document.addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        moreBtn.classList.remove('active');
+    });
+
+    document.getElementById('btnMenuImage').addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) compressAndSendChatImage(file, messagesRef);
+    });
+
+    document.getElementById('btnMenuEmoji').addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        emojiPopover.classList.remove('hidden');
+        renderEmojiCategory('smileys', 'emojiGrid', 'chatInput');
+    });
+
+    document.getElementById('closeEmojiPopover').addEventListener('click', () => {
+        emojiPopover.classList.add('hidden');
+    });
+
+    document.getElementById('emojiCategories').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#emojiCategories button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderEmojiCategory(e.target.dataset.cat, 'emojiGrid', 'chatInput');
+        }
+    });
+
+    document.getElementById('btnMenuGiphy').addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        giphyPopover.classList.remove('hidden');
+        fetchGiphyGifs('trending', 'giphyResultsGrid', (gifUrl) => {
+            messagesRef.push({
+                author: currentUser ? currentUser.name : "Invitado Basado",
+                avatar: currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest",
+                text: gifUrl,
+                timestamp: Date.now()
+            });
+            giphyPopover.classList.add('hidden');
+        });
+    });
+
+    document.getElementById('closeGiphyPopover').addEventListener('click', () => {
+        giphyPopover.classList.add('hidden');
+    });
+
+    let giphyTimer;
+    document.getElementById('giphySearchInput').addEventListener('input', (e) => {
+        clearTimeout(giphyTimer);
+        const query = e.target.value.trim();
+        giphyTimer = setTimeout(() => {
+            fetchGiphyGifs(query || 'trending', 'giphyResultsGrid', (gifUrl) => {
+                messagesRef.push({
+                    author: currentUser ? currentUser.name : "Invitado Basado",
+                    avatar: currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest",
+                    text: gifUrl,
+                    timestamp: Date.now()
+                });
+                giphyPopover.classList.add('hidden');
+            });
+        }, 400);
+    });
+}
+
+// CONTROLES INTERACTIVOS EN CHAT PRIVADO (DM) (+)
+function setupPrivateChatInteractiveControls() {
+    const moreBtn = document.getElementById('privateChatMoreBtn');
+    const moreMenu = document.getElementById('privateChatMoreMenu');
+    const imageInput = document.getElementById('privateChatImageInput');
+    const emojiPopover = document.getElementById('privateEmojiPopover');
+    const giphyPopover = document.getElementById('privateGiphyPopover');
+
+    if (!moreBtn || !moreMenu) return;
+
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreMenu.classList.toggle('active');
+        moreBtn.classList.toggle('active');
+        emojiPopover.classList.add('hidden');
+        giphyPopover.classList.add('hidden');
+    });
+
+    document.getElementById('btnPrivateMenuImage').addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && currentUser && activePrivateChatPartner) {
+            const chatId = [currentUser.name, activePrivateChatPartner].sort().join('_CHAT_');
+            compressAndSendChatImage(file, privateChatRef.child(chatId), true);
+        }
+    });
+
+    document.getElementById('btnPrivateMenuEmoji').addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        emojiPopover.classList.remove('hidden');
+        renderEmojiCategory('smileys', 'privateEmojiGrid', 'privateChatInput');
+    });
+
+    document.getElementById('closePrivateEmojiPopover').addEventListener('click', () => {
+        emojiPopover.classList.add('hidden');
+    });
+
+    document.getElementById('privateEmojiCategories').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#privateEmojiCategories button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            renderEmojiCategory(e.target.dataset.cat, 'privateEmojiGrid', 'privateChatInput');
+        }
+    });
+
+    document.getElementById('btnPrivateMenuGiphy').addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        giphyPopover.classList.remove('hidden');
+        fetchGiphyGifs('trending', 'privateGiphyResultsGrid', (gifUrl) => {
+            if (currentUser && activePrivateChatPartner) {
+                const chatId = [currentUser.name, activePrivateChatPartner].sort().join('_CHAT_');
+                privateChatRef.child(chatId).push({
+                    sender: currentUser.name,
+                    text: gifUrl,
+                    timestamp: Date.now()
+                });
+            }
+            giphyPopover.classList.add('hidden');
+        });
+    });
+
+    document.getElementById('closePrivateGiphyPopover').addEventListener('click', () => {
+        giphyPopover.classList.add('hidden');
+    });
+
+    let giphyTimer;
+    document.getElementById('privateGiphySearchInput').addEventListener('input', (e) => {
+        clearTimeout(giphyTimer);
+        const query = e.target.value.trim();
+        giphyTimer = setTimeout(() => {
+            fetchGiphyGifs(query || 'trending', 'privateGiphyResultsGrid', (gifUrl) => {
+                if (currentUser && activePrivateChatPartner) {
+                    const chatId = [currentUser.name, activePrivateChatPartner].sort().join('_CHAT_');
+                    privateChatRef.child(chatId).push({
+                        sender: currentUser.name,
+                        text: gifUrl,
+                        timestamp: Date.now()
+                    });
+                }
+                giphyPopover.classList.add('hidden');
+            });
+        }, 400);
+    });
+}
+
+function renderEmojiCategory(cat, gridId, inputId) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    const emojis = EMOJI_DATA[cat] || [];
+    emojis.forEach(emoji => {
+        const span = document.createElement('span');
+        span.textContent = emoji;
+        span.addEventListener('click', () => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value += emoji;
+                input.focus();
+            }
+        });
+        grid.appendChild(span);
+    });
+}
+
+function fetchGiphyGifs(query, targetGridId, onSelectCallback) {
+    const grid = document.getElementById(targetGridId);
+    if (!grid) return;
+    grid.innerHTML = '<p style="color:#aaa; font-size:0.8rem; grid-column:1/-1;">Cargando GIFs...</p>';
+
+    const url = (query === 'trending' || !query)
+        ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=12`
+        : `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            grid.innerHTML = '';
+            if (data.data && data.data.length > 0) {
+                data.data.forEach(gif => {
+                    const gifUrl = gif.images.fixed_height.url || gif.images.original.url;
+                    const img = document.createElement('img');
+                    img.src = gifUrl;
+                    img.addEventListener('click', () => {
+                        if (onSelectCallback) onSelectCallback(gifUrl);
+                    });
+                    grid.appendChild(img);
+                });
+            } else {
+                grid.innerHTML = '<p style="color:#aaa; font-size:0.8rem; grid-column:1/-1;">No se encontraron GIFs.</p>';
+            }
+        }).catch(() => {
+            grid.innerHTML = '<p style="color:#ff4444; font-size:0.8rem; grid-column:1/-1;">Error al cargar GIFs de Giphy.</p>';
+        });
+}
+
+function compressAndSendChatImage(file, targetFirebaseRef, isDM = false) {
+    if (file.size > 2 * 1024 * 1024) {
+        alert("⚠️ La imagen excede el límite de 2 MB.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1000;
+
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+            if (isDM) {
+                targetFirebaseRef.push({
+                    sender: currentUser ? currentUser.name : "Invitado",
+                    text: compressedBase64,
+                    timestamp: Date.now()
+                });
+            } else {
+                targetFirebaseRef.push({
+                    author: currentUser ? currentUser.name : "Invitado Basado",
+                    avatar: currentUser ? currentUser.avatar : "https://api.dicebear.com/7.x/bottts/svg?seed=Guest",
+                    text: compressedBase64,
+                    timestamp: Date.now()
+                });
+            }
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 // FIREBASE EN TIEMPO REAL
 function initRealtimeFirebase() {
     // 1. Juegos
     gamesRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
+            const previousCount = loadedGames.length;
             loadedGames = Object.values(data);
+            if (previousCount > 0 && loadedGames.length > previousCount) {
+                pushNotification('game', '🎮 ¡Nuevo juego disponible!', 'Se ha añadido un nuevo juego al catálogo.');
+            }
         } else {
             defaultGames.forEach(g => gamesRef.child(g.id).set(g));
             loadedGames = defaultGames;
@@ -371,7 +670,7 @@ function initRealtimeFirebase() {
         renderGameRequests();
     });
 
-    // 9. Chat
+    // 9. Chat General
     messagesRef.limitToLast(50).on('value', (snapshot) => {
         const data = snapshot.val();
         const chatMessages = document.getElementById('chatMessages');
@@ -382,12 +681,12 @@ function initRealtimeFirebase() {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'chat-msg';
 
-                const imageUrlPattern = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)(?:\?.*)?|https?:\/\/cdn\.discordapp\.com\/attachments\/[^\s]+|https?:\/\/media\.discordapp\.net\/attachments\/[^\s]+)/i;
+                const mediaPattern = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)(?:\?.*)?|https?:\/\/cdn\.discordapp\.com\/attachments\/[^\s]+|https?:\/\/media\.giphy\.com\/[^\s]+|data:image\/[a-zA-Z]+;base64,[^\s]+)/i;
                 let formattedText = msg.text;
 
-                if (imageUrlPattern.test(msg.text)) {
-                    formattedText = msg.text.replace(imageUrlPattern, (url) => {
-                        return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Ampliar imagen" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">`;
+                if (mediaPattern.test(msg.text)) {
+                    formattedText = msg.text.replace(mediaPattern, (url) => {
+                        return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Ampliar media" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">`;
                     });
                 }
 
@@ -404,7 +703,20 @@ function initRealtimeFirebase() {
         }
     });
 
-    // 10. Presencia en Vivo
+    // 10. Escuchar Mensajes Privados Entrantes para Notificaciones
+    privateChatRef.on('child_added', (snapshot) => {
+        const chatId = snapshot.key;
+        if (currentUser && chatId.includes(currentUser.name)) {
+            snapshot.ref.limitToLast(1).on('child_added', (msgSnap) => {
+                const msg = msgSnap.val();
+                if (msg && msg.sender !== currentUser.name) {
+                    pushNotification('dm', `💬 Mensaje de ${msg.sender}`, msg.text.startsWith('data:image') ? '[Imagen enviada]' : msg.text, msg.sender);
+                }
+            });
+        }
+    });
+
+    // 11. Presencia en Vivo
     myUserRef = onlineUsersRef.push();
     myUserRef.onDisconnect().remove();
     updateFirebasePresence();
@@ -416,8 +728,59 @@ function initRealtimeFirebase() {
         document.getElementById('onlineCount').textContent = total;
         document.getElementById('onlineCountModal').textContent = total;
         renderOnlineUsersSidebar();
+        if (activeProfileViewName) {
+            renderFriendsList(activeProfileViewName);
+        }
     });
 }
+
+// SISTEMA DE NOTIFICACIONES Y ALERTAS
+function pushNotification(type, title, text, senderName = '') {
+    const notifObj = {
+        id: 'notif-' + Date.now(),
+        type,
+        title,
+        text,
+        senderName,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    loadedUserNotifications.unshift(notifObj);
+
+    const badge = document.getElementById('notifBadgeCount');
+    if (badge) {
+        badge.textContent = loadedUserNotifications.length;
+        badge.classList.remove('hidden');
+    }
+    renderNotificationsFeed();
+}
+
+function renderNotificationsFeed() {
+    const container = document.getElementById('notifFeedContainer');
+    if (!container) return;
+
+    if (loadedUserNotifications.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; font-size:0.85rem; text-align:center;">No tienes notificaciones pendientes.</p>';
+        return;
+    }
+
+    container.innerHTML = loadedUserNotifications.map(n => `
+        <div class="notif-item-card" onclick="handleNotificationClick('${n.type}', '${n.senderName}')">
+            <i class="fas ${n.type === 'dm' ? 'fa-comment-alt' : 'fa-gamepad'}"></i>
+            <div>
+                <strong style="color:#fff; font-size:0.85rem;">${n.title}</strong>
+                <p style="color:#aaa; font-size:0.8rem; margin:2px 0;">${n.text}</p>
+                <small style="color:var(--neon-red); font-size:0.7rem;">${n.time}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.handleNotificationClick = function(type, senderName) {
+    document.getElementById('notifModal').classList.remove('active');
+    if (type === 'dm' && senderName) {
+        openPrivateChatWith(senderName);
+    }
+};
 
 function renderCommunitySocialGrid() {
     const grid = document.getElementById('communitySocialGrid');
@@ -454,7 +817,7 @@ document.getElementById('formAdminSocial').addEventListener('submit', (e) => {
     });
 });
 
-// PERFIL PÚBLICO & SISTEMA DE RED SOCIAL / AMIGOS / CAPTURAS
+// PERFIL PÚBLICO & SISTEMA DE RED SOCIAL / AMIGOS CON ESTADO EN LÍNEA
 window.openPublicProfile = function(name, avatar) {
     activeProfileViewName = name;
     document.getElementById('publicName').textContent = name;
@@ -553,15 +916,25 @@ function renderFriendsList(username) {
         return;
     }
 
-    container.innerHTML = userFriends.map(friendName => `
-        <div class="friend-item-row">
-            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openPublicProfile('${friendName}', '')">
-                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${friendName}">
-                <strong style="color:#fff; font-size:0.9rem;">${friendName}</strong>
+    const onlineUserNames = currentOnlineList.map(u => u.name);
+
+    container.innerHTML = userFriends.map(friendName => {
+        const isOnline = onlineUserNames.includes(friendName);
+        return `
+            <div class="friend-item-row">
+                <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openPublicProfile('${friendName}', '')">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${friendName}">
+                    <div>
+                        <strong style="color:#fff; font-size:0.9rem; display:block;">${friendName}</strong>
+                        <span class="status-dot-text ${isOnline ? 'online' : 'offline'}">
+                            ${isOnline ? '🟢 En Línea' : '⚪ Desconectado'}
+                        </span>
+                    </div>
+                </div>
+                ${currentUser ? `<button class="btn-secondary btn-sm" onclick="openPrivateChatWith('${friendName}')"><i class="fas fa-comment"></i> Chat</button>` : ''}
             </div>
-            ${currentUser ? `<button class="btn-secondary btn-sm" onclick="openPrivateChatWith('${friendName}')"><i class="fas fa-comment"></i> Chat</button>` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // MENSAJES PRIVADOS DMs
@@ -592,10 +965,20 @@ window.openPrivateChatWith = function(targetName) {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'chat-msg';
                 msgDiv.style.justifyContent = isMine ? 'flex-end' : 'flex-start';
+
+                const mediaPattern = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)(?:\?.*)?|https?:\/\/cdn\.discordapp\.com\/attachments\/[^\s]+|https?:\/\/media\.giphy\.com\/[^\s]+|data:image\/[a-zA-Z]+;base64,[^\s]+)/i;
+                let formattedText = msg.text;
+
+                if (mediaPattern.test(msg.text)) {
+                    formattedText = msg.text.replace(mediaPattern, (url) => {
+                        return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Ampliar media" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">`;
+                    });
+                }
+
                 msgDiv.innerHTML = `
                     <div class="chat-msg-content" style="${isMine ? 'background:#800020; border-color:var(--neon-red);' : ''}">
                         <span class="chat-author" style="color:${isMine ? '#ff4444' : '#00ff80'};">${msg.sender}</span>
-                        <p class="chat-text">${msg.text}</p>
+                        <p class="chat-text">${formattedText}</p>
                     </div>
                 `;
                 container.appendChild(msgDiv);
@@ -1231,8 +1614,25 @@ function openGameModal(id) {
                             <i class="fas fa-star active" data-value="5"></i>
                         </div>
                     </div>
-                    <textarea id="gameCommentText" placeholder="Escribe tu reseña..." required></textarea>
-                    <button type="submit" class="btn-primary" style="align-self:flex-end;"><i class="fas fa-paper-plane"></i> PUBLICAR RESEÑA</button>
+                    
+                    <div class="chat-input-area" style="margin-top:5px;">
+                        <textarea id="gameCommentText" placeholder="Escribe tu reseña..." required style="flex:1;"></textarea>
+                        
+                        <!-- BOTÓN (+) PARA COMENTARIOS DE JUEGOS -->
+                        <div class="chat-more-container">
+                            <button type="button" class="btn-more-chat" id="commentMoreBtn" title="Adjuntar archivo, GIF o Emoji">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <div class="chat-more-menu" id="commentMoreMenu">
+                                <button type="button" id="btnCommentImage"><i class="fas fa-image"></i> Imagen</button>
+                                <button type="button" id="btnCommentGiphy"><i class="fas fa-film"></i> GIF</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" id="commentImageInput" accept="image/*" style="display:none;">
+
+                    <button type="submit" class="btn-primary" style="align-self:flex-end; margin-top:8px;"><i class="fas fa-paper-plane"></i> PUBLICAR RESEÑA</button>
                 </form>
             ` : `
                 <div class="login-to-comment-box" style="text-align:center; padding:15px; background:#12121a; border-radius:8px; border:1px solid #28283a; margin-bottom:20px;">
@@ -1253,6 +1653,7 @@ function openGameModal(id) {
     if (currentUser) {
         selectedRating = 5;
         setupStarSelector();
+        setupCommentInteractiveControls(id);
 
         document.getElementById('formGameComment').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1270,6 +1671,50 @@ function openGameModal(id) {
             });
         });
     }
+}
+
+function setupCommentInteractiveControls(gameId) {
+    const moreBtn = document.getElementById('commentMoreBtn');
+    const moreMenu = document.getElementById('commentMoreMenu');
+    const imageInput = document.getElementById('commentImageInput');
+
+    if (!moreBtn || !moreMenu) return;
+
+    moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        moreMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => {
+        if (moreMenu) moreMenu.classList.remove('active');
+    });
+
+    document.getElementById('btnCommentImage').addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && currentUser) {
+            compressAndSendChatImage(file, commentsRef.child(gameId), false);
+        }
+    });
+
+    document.getElementById('btnCommentGiphy').addEventListener('click', () => {
+        moreMenu.classList.remove('active');
+        const gifQuery = prompt("Escribe una palabra clave para buscar un GIF:");
+        if (gifQuery) {
+            fetchGiphyGifs(gifQuery, 'commentsContainer', (gifUrl) => {
+                commentsRef.child(gameId).push({
+                    author: currentUser.name,
+                    avatar: currentUser.avatar,
+                    rating: selectedRating,
+                    text: gifUrl,
+                    timestamp: Date.now()
+                });
+            });
+        }
+    });
 }
 
 window.toggleVersionMenu = function(e) {
@@ -1360,6 +1805,15 @@ function initGameComments(gameId) {
             const starsHTML = '★'.repeat(c.rating || 5) + '☆'.repeat(5 - (c.rating || 5));
             const dateStr = new Date(c.timestamp).toLocaleDateString();
 
+            const mediaPattern = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)(?:\?.*)?|https?:\/\/cdn\.discordapp\.com\/attachments\/[^\s]+|https?:\/\/media\.giphy\.com\/[^\s]+|data:image\/[a-zA-Z]+;base64,[^\s]+)/i;
+            let formattedText = c.text;
+
+            if (mediaPattern.test(c.text)) {
+                formattedText = c.text.replace(mediaPattern, (url) => {
+                    return `<br><img src="${url}" class="chat-msg-img" onclick="openImageModal('${url}')" title="Ampliar media" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMAGE}';">`;
+                });
+            }
+
             const item = document.createElement('div');
             item.className = 'comment-item';
             item.innerHTML = `
@@ -1370,7 +1824,7 @@ function initGameComments(gameId) {
                         <span class="comment-date">${dateStr}</span>
                     </div>
                     <div class="comment-stars">${starsHTML}</div>
-                    <p class="comment-text">${c.text}</p>
+                    <p class="comment-text">${formattedText}</p>
                 </div>
             `;
             container.appendChild(item);
@@ -1518,6 +1972,7 @@ function openAdminEditModal(e, id) {
 function resetAdminForm() {
     document.getElementById('formAdminGame').reset();
     document.getElementById('adminGameId').value = '';
+    document.getElementById('adminImageFileInput').value = '';
     document.getElementById('versionsListContainer').innerHTML = '';
     addVersionField();
     document.getElementById('btnSaveAdminGame').textContent = "GUARDAR CAMBIOS";
@@ -1525,6 +1980,49 @@ function resetAdminForm() {
 }
 
 document.getElementById('btnCancelEdit').addEventListener('click', resetAdminForm);
+
+// EVENTO PARA COMPRIMIR Y ASIGNAR IMAGEN DE JUEGO EN MODO MODERADOR (LÍMITE MÁX 1MB)
+document.getElementById('adminImageFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("⚠️ La imagen seleccionada es demasiado pesada (> 5 MB).");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxDimension = 1280;
+
+            if (width > maxDimension || height > maxDimension) {
+                if (width > height) {
+                    height = Math.round((height * maxDimension) / width);
+                    width = maxDimension;
+                } else {
+                    width = Math.round((width * maxDimension) / height);
+                    height = maxDimension;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compresión controlada garantizando peso menor a 1MB
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            document.getElementById('adminImage').value = compressedBase64;
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+});
 
 document.getElementById('formAdminGame').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1883,6 +2381,9 @@ function setupEventListeners() {
 
     document.getElementById('btnNotif').addEventListener('click', () => {
         document.getElementById('notifModal').classList.add('active');
+        const badge = document.getElementById('notifBadgeCount');
+        if (badge) badge.classList.add('hidden');
+        renderNotificationsFeed();
     });
 
     document.getElementById('closeNotifModal').addEventListener('click', () => {
@@ -1891,7 +2392,7 @@ function setupEventListeners() {
 
     document.getElementById('formNotif').addEventListener('submit', (e) => {
         e.preventDefault();
-        alert("🔔 ¡Te has suscrito a las notificaciones con éxito!");
+        alert("🔔 ¡Te has suscrito a las notificaciones por correo con éxito!");
         document.getElementById('notifModal').classList.remove('active');
     });
 
