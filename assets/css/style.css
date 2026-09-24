@@ -728,12 +728,11 @@ html, body {
 .friend-item-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
     background: #09090e;
     border: 1px solid #1f1f2e;
     padding: 8px 12px;
     border-radius: 8px;
-    cursor: pointer;
 }
 
 .friend-item-row img {
@@ -743,6 +742,14 @@ html, body {
     object-fit: cover;
     border: 1px solid var(--neon-red);
 }
+
+.status-dot-text {
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.status-dot-text.online { color: #00ff80; }
+.status-dot-text.offline { color: #888; }
 
 .section-title {
     font-family: var(--font-head);
@@ -1344,6 +1351,29 @@ html, body {
     word-break: break-word;
 }
 
+.notif-item-card {
+    background: #101018;
+    border: 1px solid #222234;
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.notif-item-card:hover {
+    border-color: var(--neon-red);
+    background: #181824;
+}
+
+.notif-item-card i {
+    font-size: 1.1rem;
+    color: var(--neon-red);
+    margin-top: 2px;
+}
+
 .admin-tabs {
     display: flex;
     gap: 8px;
@@ -1568,6 +1598,7 @@ html, body {
     padding: 12px;
     min-width: 0;
     overflow: hidden;
+    position: relative;
 }
 
 .chat-messages {
@@ -1620,10 +1651,17 @@ html, body {
     margin-top: 2px;
 }
 
+/* INPUT CHAT Y BOTÓN MÁS (+) INTEGRADOS */
+.chat-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
 .chat-input-area {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
+    align-items: center;
 }
 
 .chat-input-area input {
@@ -1631,10 +1669,192 @@ html, body {
     background: #14141d;
     border: 1px solid #282836;
     border-radius: 6px;
-    padding: 8px;
+    padding: 8px 12px;
     color: #fff;
     outline: none;
     min-width: 0;
+}
+
+.chat-input-area input:focus {
+    border-color: var(--neon-red);
+}
+
+.chat-more-container {
+    position: relative;
+}
+
+.btn-more-chat {
+    background: #1a1a26;
+    border: 1px solid #2d2d42;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    font-size: 1rem;
+}
+
+.btn-more-chat:hover, .btn-more-chat.active {
+    background: var(--neon-red);
+    border-color: var(--neon-red);
+    box-shadow: 0 0 10px var(--neon-red-glow);
+}
+
+.chat-more-menu {
+    position: absolute;
+    bottom: 45px;
+    right: 0;
+    background: #0d0e17;
+    border: 1px solid var(--neon-red);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    width: 190px;
+    z-index: 200;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.9);
+    overflow: hidden;
+}
+
+.chat-more-menu.active {
+    display: flex;
+}
+
+.chat-more-menu button {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.chat-more-menu button:hover {
+    background: rgba(255, 0, 60, 0.2);
+    color: var(--neon-red);
+}
+
+/* POPOVER PARA EMOJIS Y GIPHY */
+.chat-popover {
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    width: 320px;
+    height: 290px;
+    background: #0d0e17;
+    border: 1px solid var(--neon-red);
+    border-radius: 10px;
+    z-index: 210;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.95);
+}
+
+.popover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--neon-red);
+}
+
+.popover-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.popover-search input {
+    width: 100%;
+    background: #141420;
+    border: 1px solid #2a2a3e;
+    padding: 6px 10px;
+    color: #fff;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    outline: none;
+    font-size: 0.85rem;
+}
+
+.giphy-results-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.giphy-results-grid img {
+    width: 100%;
+    height: 85px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #1f1f30;
+    transition: 0.2s;
+}
+
+.giphy-results-grid img:hover {
+    border-color: var(--neon-red);
+    transform: scale(0.98);
+}
+
+.emoji-categories {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.emoji-categories button {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+.emoji-categories button.active, .emoji-categories button:hover {
+    background: rgba(255,0,60,0.3);
+}
+
+.emoji-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.emoji-grid span {
+    cursor: pointer;
+    user-select: none;
+    padding: 4px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.emoji-grid span:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.2);
 }
 
 .requests-layout {
@@ -1818,5 +2038,11 @@ html, body {
 
     .form-row {
         grid-template-columns: 1fr;
+    }
+
+    .chat-popover {
+        width: 100%;
+        right: 0;
+        left: 0;
     }
 }
